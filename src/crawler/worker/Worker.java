@@ -103,7 +103,6 @@ public class Worker implements Callable<Object> {
             URL u = new URL(foundUrl);
             return !u.getPath().equals("/") && u.getHost().equals(url.getHost()) ? Optional.of(u) : Optional.empty();
         } catch (MalformedURLException e) {
-            logger.error(String.format("URL: %s\n", foundUrl));
             return Optional.empty();
         }
     }
