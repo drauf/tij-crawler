@@ -4,7 +4,6 @@ import logger.GuiLogger;
 import logger.Logger;
 
 import java.io.BufferedReader;
-import java.io.File;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.MalformedURLException;
@@ -38,12 +37,16 @@ public class Worker implements Callable<Object> {
     }
 
     @Override
-    public Object call() throws InterruptedException, IOException {
+    public Object call() throws InterruptedException {
         URL url;
         while ((url = queue.poll(TIMEOUT, TimeUnit.MILLISECONDS)) != null) {
-            String asset = downloadAsset(url);
-            parseAsset(url, asset);
-            saveAsset(url, asset);
+            try {
+                String asset = downloadAsset(url);
+                parseAsset(url, asset);
+                saveAsset(url, asset);
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
         }
         logger.debug("Worker ended peacefully\n");
         return null;
