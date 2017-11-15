@@ -8,11 +8,15 @@ import java.io.BufferedReader;
 import java.io.InputStreamReader;
 import java.net.URL;
 import java.net.URLConnection;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.TimeUnit;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 public class Worker implements Callable<Object> {
 
@@ -30,26 +34,26 @@ public class Worker implements Callable<Object> {
         String url;
         while ((url = queue.poll(1, TimeUnit.SECONDS)) != null) {
             try {
-                String asset = downloadAsset(url);
-                logger.debug(asset);
-                parseAsset(asset);
+                URL u = new URL(url);
+                String asset = downloadAsset(u);
+                parseAsset(u, asset);
                 saveAsset(asset);
             } catch (Exception e) {
-                logger.warn(String.format("Worker ending with error: %s\n", e.getMessage()));
+                logger.error("Worker exited with an error\n");
+                e.printStackTrace();
                 Exception interruptedException = new InterruptedException();
                 interruptedException.addSuppressed(e);
                 throw interruptedException;
             }
         }
-        logger.info("Worker ending\n");
+        logger.info("Worker ended peacefully\n");
         return null;
     }
 
-    private String downloadAsset(String theUrl) {
+    private String downloadAsset(URL url) {
         StringBuilder content = new StringBuilder();
 
         try {
-            URL url = new URL(theUrl);
             URLConnection urlConnection = url.openConnection();
             BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(urlConnection.getInputStream()));
 
@@ -65,11 +69,45 @@ public class Worker implements Callable<Object> {
         return content.toString();
     }
 
-    private void parseAsset(String asset) {
-        throw new NotImplementedException();
+    private void parseAsset(URL url, String asset) {
+        logger.debug("Start asset parsing\n");
+        List<String> foundUrls = new ArrayList<>();
+        Pattern pattern = Pattern.compile("href=\"(.*?)\"", Pattern.CASE_INSENSITIVE);
+        Matcher urlMatcher = pattern.matcher(asset);
+
+        while (urlMatcher.find()) {
+            String foundUrl = asset.substring(urlMatcher.start(1), urlMatcher.end(1));
+            foundUrl = fixUrl(url, foundUrl);
+
+            if (foundUrl != null) {
+                logger.debug(String.format("Found url: %s\n", foundUrl));
+                foundUrls.add(foundUrl);
+                if (graph.putIfAbsent(foundUrl, Collections.emptyList()) == null) queue.offer(foundUrl);
+            }
+        }
+
+        graph.replace(url.toString(), foundUrls);
     }
 
     private void saveAsset(String asset) {
         throw new NotImplementedException();
+    }
+
+    private String fixUrl(URL url, String foundUrl) {
+        if ("#".equals(foundUrl)) return null; // skip #
+        if (foundUrl.startsWith("javascript")) return null; // skip javascript:void(0)
+
+        if (foundUrl.startsWith("//")) { // URL with skipped protocol
+            return "http:" + foundUrl;
+        }
+
+        if (!foundUrl.startsWith("http")) { // relative URL
+            if (foundUrl.startsWith("/")) { // relative to root URL
+                return "http://" + url.getHost() + foundUrl;
+            } else {  // relative to current URL
+                return url.toString() + foundUrl.substring(1);
+            }
+        }
+        return foundUrl; // regular URL starting with http or https
     }
 }
