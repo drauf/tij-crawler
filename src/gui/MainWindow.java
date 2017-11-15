@@ -4,19 +4,19 @@ import logger.GuiLogger;
 import logger.Logger;
 
 import javax.swing.*;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 
 import static gui.Constants.*;
 
-public class MainWindow extends JFrame implements ActionListener {
+public class MainWindow extends JFrame {
 
     private final Logger logger = Logger.getLogger(GuiLogger.class);
 
+    private int numberOfThreads = 1;
     private final JTextField urlTextField = new JTextField(URL_TEXT_FIELD_TEXT);
     private final JTextArea outputTextArea = new JTextArea();
 
     public MainWindow() {
+        logger.setHandler(outputTextArea);
         initUI();
     }
 
@@ -29,19 +29,20 @@ public class MainWindow extends JFrame implements ActionListener {
         JButton startButton = new JButton(START_BUTTON_TEXT);
         startButton.setBounds(START_BUTTON_X, START_BUTTON_Y, START_BUTTON_WIDTH, START_BUTTON_HEIGHT);
         getContentPane().add(startButton);
-        startButton.addActionListener(this);
+        startButton.addActionListener(new StartButtonActionListener(urlTextField.getText(), numberOfThreads));
 
-        outputTextArea.setBounds(OUTPUT_TEXT_AREA_X, OUTPUT_TEXT_AREA_Y, OUTPUT_TEXT_AREA_WIDTH, OUTPUT_TEXT_AREA_HEIGHT);
-        logger.setHandler(outputTextArea);
-        getContentPane().add(outputTextArea);
+        Integer[] threads = {1, 2, 4, 8, 16, 32};
+        JComboBox<Integer> selectThreadsNo = new JComboBox<>(threads);
+        selectThreadsNo.setBounds(START_BUTTON_X, START_BUTTON_Y + 20, START_BUTTON_WIDTH, START_BUTTON_HEIGHT);
+        getContentPane().add(selectThreadsNo);
+
+        JScrollPane scrollPane = new JScrollPane(outputTextArea);
+        scrollPane.setBounds(OUTPUT_TEXT_AREA_X, OUTPUT_TEXT_AREA_Y, OUTPUT_TEXT_AREA_WIDTH, OUTPUT_TEXT_AREA_HEIGHT);
+        getContentPane().add(scrollPane);
 
         setTitle(WINDOW_TITLE);
         setSize(WINDOW_WIDTH, WINDOW_HEIGHT);
         setLocationRelativeTo(null);
         setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
-    }
-
-    public void actionPerformed(ActionEvent e) {
-        logger.debug(String.format("Starting crawler for url: %s\n", urlTextField.getText()));
     }
 }
