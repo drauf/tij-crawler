@@ -28,13 +28,20 @@ public class Worker implements Callable<Object> {
     @Override
     public Object call() throws Exception {
         String url;
-        while ((url = queue.poll(100, TimeUnit.MILLISECONDS)) != null) {
-            String asset = downloadAsset(url);
-            logger.debug(asset);
-            parseAsset(asset);
-            saveAsset(asset);
+        while ((url = queue.poll(1, TimeUnit.SECONDS)) != null) {
+            try {
+                String asset = downloadAsset(url);
+                logger.debug(asset);
+                parseAsset(asset);
+                saveAsset(asset);
+            } catch (Exception e) {
+                logger.warn(String.format("Worker ending with error: %s\n", e.getMessage()));
+                Exception interruptedException = new InterruptedException();
+                interruptedException.addSuppressed(e);
+                throw interruptedException;
+            }
         }
-        logger.debug("Worker ending");
+        logger.info("Worker ending\n");
         return null;
     }
 

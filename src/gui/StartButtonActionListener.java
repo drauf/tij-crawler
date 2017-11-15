@@ -10,16 +10,14 @@ import java.awt.event.ActionListener;
 class StartButtonActionListener implements ActionListener {
 
     private final Logger logger = Logger.getLogger(GuiLogger.class);
-    private final String initialUrl;
-    private final int numberOfThreads;
+    private final MainWindow mainWindow;
 
-    StartButtonActionListener(String url, int threads) {
-        initialUrl = url;
-        numberOfThreads = threads;
+    StartButtonActionListener(MainWindow window) {
+        mainWindow = window;
     }
 
     public void actionPerformed(ActionEvent e) {
-        logger.debug(String.format("Starting crawler for url: %s\n", initialUrl));
-        (new Thread(new Crawler(initialUrl, numberOfThreads))).start();
+        logger.info(String.format("Starting crawler with %d threads for url: %s\n", mainWindow.getNumberOfThreads(), mainWindow.getUrl()));
+        (new Thread(new Crawler(mainWindow.getUrl(), mainWindow.getNumberOfThreads()))).start();
     }
 }

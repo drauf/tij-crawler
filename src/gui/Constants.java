@@ -20,8 +20,30 @@ final class Constants {
     static final int START_BUTTON_HEIGHT = URL_TEXT_FIELD_HEIGHT;
     static final String START_BUTTON_TEXT = "Start crawler";
 
+    static final int THREADS_LABEL_X = MARGIN;
+    static final int THREADS_LABEL_Y = URL_TEXT_FIELD_Y + URL_TEXT_FIELD_HEIGHT + MARGIN;
+    static final int THREADS_LABEL_WIDTH = 125;
+    static final int THREADS_LABEL_HEIGHT = URL_TEXT_FIELD_HEIGHT;
+    static final String THREADS_LABEL_TEXT = "Number of threads:";
+
+    static final int THREADS_SELECT_X = THREADS_LABEL_X + THREADS_LABEL_WIDTH + MARGIN;
+    static final int THREADS_SELECT_Y = 1 + URL_TEXT_FIELD_Y + URL_TEXT_FIELD_HEIGHT + MARGIN;
+    static final int THREADS_SELECT_WIDTH = 150;
+    static final int THREADS_SELECT_HEIGHT = URL_TEXT_FIELD_HEIGHT;
+
+    static final int SELECT_MODE_LABEL_X = THREADS_SELECT_X + THREADS_SELECT_WIDTH + MARGIN * 5;
+    static final int SELECT_MODE_LABEL_Y = URL_TEXT_FIELD_Y + URL_TEXT_FIELD_HEIGHT + MARGIN;
+    static final int SELECT_MODE_LABEL_WIDTH = 85;
+    static final int SELECT_MODE_LABEL_HEIGHT = URL_TEXT_FIELD_HEIGHT;
+    static final String SELECT_MODE_LABEL_TEXT = "Select mode:";
+
+    static final int SELECT_MODE_X = SELECT_MODE_LABEL_X + SELECT_MODE_LABEL_WIDTH + MARGIN;
+    static final int SELECT_MODE_Y = 1 + URL_TEXT_FIELD_Y + URL_TEXT_FIELD_HEIGHT + MARGIN;
+    static final int SELECT_MODE_WIDTH = 150;
+    static final int SELECT_MODE_HEIGHT = URL_TEXT_FIELD_HEIGHT;
+
     static final int OUTPUT_TEXT_AREA_X = MARGIN;
-    static final int OUTPUT_TEXT_AREA_Y = URL_TEXT_FIELD_Y + URL_TEXT_FIELD_HEIGHT + MARGIN * 2;
+    static final int OUTPUT_TEXT_AREA_Y = THREADS_LABEL_Y + THREADS_LABEL_HEIGHT + MARGIN;
     static final int OUTPUT_TEXT_AREA_WIDTH = WINDOW_WIDTH - MARGIN * 2;
-    static final int OUTPUT_TEXT_AREA_HEIGHT = WINDOW_HEIGHT - URL_TEXT_FIELD_Y - URL_TEXT_FIELD_HEIGHT - MARGIN * 5;
+    static final int OUTPUT_TEXT_AREA_HEIGHT = WINDOW_HEIGHT - URL_TEXT_FIELD_Y - URL_TEXT_FIELD_HEIGHT - MARGIN * 9;
 }

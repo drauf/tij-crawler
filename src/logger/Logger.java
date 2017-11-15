@@ -6,7 +6,7 @@ public abstract class Logger {
         DEBUG, INFO, WARN, ERROR
     }
 
-    private LOGGING_LEVEL loggingLevel = LOGGING_LEVEL.INFO;
+    private LOGGING_LEVEL loggingLevel = LOGGING_LEVEL.DEBUG;
 
     public static Logger getLogger(Class c) {
         return GuiLogger.getInstance();
@@ -41,7 +41,7 @@ public abstract class Logger {
     }
 
     private void compareLevelAndLog(String message, LOGGING_LEVEL level) {
-        if (loggingLevel.ordinal() >= level.ordinal()) {
+        if (loggingLevel.ordinal() <= level.ordinal()) {
             log(message);
         }
     }

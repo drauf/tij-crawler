@@ -32,8 +32,6 @@ public class Crawler implements Runnable {
 
     @Override
     public void run() {
-        logger.debug("Started the crawler thread\n");
-
         ExecutorService service = null;
         try {
             service = Executors.newCachedThreadPool();
