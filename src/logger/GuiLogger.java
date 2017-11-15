@@ -4,9 +4,14 @@ import javax.swing.*;
 
 public class GuiLogger extends Logger {
 
+    private final static GuiLogger instance = new GuiLogger();
     private static JTextArea outputTextArea;
 
-    GuiLogger() {
+    private GuiLogger() {
+    }
+
+    static GuiLogger getInstance() {
+        return instance;
     }
 
     @Override

@@ -9,11 +9,7 @@ public abstract class Logger {
     private LOGGING_LEVEL loggingLevel = LOGGING_LEVEL.INFO;
 
     public static Logger getLogger(Class c) {
-        try {
-            return (Logger) c.newInstance();
-        } catch (InstantiationException | IllegalAccessException e) {
-            return new GuiLogger();
-        }
+        return GuiLogger.getInstance();
     }
 
     public abstract void setHandler(Object handler);
