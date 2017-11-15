@@ -5,6 +5,8 @@ import crawler.worker.Worker;
 import logger.GuiLogger;
 import logger.Logger;
 
+import java.net.MalformedURLException;
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -22,15 +24,16 @@ public class Crawler implements Runnable {
 
     private final Logger logger = Logger.getLogger(GuiLogger.class);
     private final int NUMBER_OF_THREADS;
-    private final ConcurrentMap<String, List<String>> graph;
-    private final BlockingQueue<String> queue;
+    private final ConcurrentMap<URL, List<URL>> graph;
+    private final BlockingQueue<URL> queue;
 
-    public Crawler(String initialUrl, int threads) {
+    public Crawler(String initialUrl, int threads) throws MalformedURLException {
         NUMBER_OF_THREADS = threads;
+        URL url = new URL(initialUrl);
         graph = new ConcurrentHashMap<>();
-        graph.put(initialUrl, Collections.emptyList());
+        graph.put(url, Collections.emptyList());
         queue = new LinkedBlockingQueue<>();
-        queue.offer(initialUrl);
+        queue.offer(url);
     }
 
     @Override
@@ -54,7 +57,7 @@ public class Crawler implements Runnable {
         logger.info("All workers finished\n");
     }
 
-    private List<? extends Callable<Object>> createWorkers(ConcurrentMap<String, List<String>> graph, BlockingQueue<String> queue, int count) {
+    private List<? extends Callable<Object>> createWorkers(ConcurrentMap<URL, List<URL>> graph, BlockingQueue<URL> queue, int count) {
         final List<Worker> workers = new ArrayList<>();
         IntStream.rangeClosed(1, count)
                 .forEach(i -> workers.add(new Worker(graph, queue)));

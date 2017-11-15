@@ -7,6 +7,7 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLConnection;
 import java.nio.file.Files;
@@ -28,22 +29,21 @@ public class Worker implements Callable<Object> {
     private static final String saveToPath = "/Projects/tij/";
     private static final Logger logger = Logger.getLogger(GuiLogger.class);
 
-    private ConcurrentMap<String, List<String>> graph;
-    private BlockingQueue<String> queue;
+    private ConcurrentMap<URL, List<URL>> graph;
+    private BlockingQueue<URL> queue;
 
-    public Worker(ConcurrentMap<String, List<String>> graph, BlockingQueue<String> queue) {
+    public Worker(ConcurrentMap<URL, List<URL>> graph, BlockingQueue<URL> queue) {
         this.graph = graph;
         this.queue = queue;
     }
 
     @Override
     public Object call() throws InterruptedException, IOException {
-        String url;
+        URL url;
         while ((url = queue.poll(TIMEOUT, TimeUnit.MILLISECONDS)) != null) {
-            URL u = new URL(url);
-            String asset = downloadAsset(u);
-            parseAsset(u, asset);
-            saveAsset(u, asset);
+            String asset = downloadAsset(url);
+            parseAsset(url, asset);
+            saveAsset(url, asset);
         }
         logger.debug("Worker ended peacefully\n");
         return null;
@@ -67,12 +67,12 @@ public class Worker implements Callable<Object> {
     }
 
     private void parseAsset(URL url, String asset) {
-        List<String> foundUrls = new ArrayList<>();
+        List<URL> foundUrls = new ArrayList<>();
         Pattern pattern = Pattern.compile("href=\"(.*?)\"", Pattern.CASE_INSENSITIVE);
         Matcher urlMatcher = pattern.matcher(asset);
 
         while (urlMatcher.find()) {
-            Optional<String> foundUrl = fixUrl(url, asset.substring(urlMatcher.start(1), urlMatcher.end(1)));
+            Optional<URL> foundUrl = validateUrl(url, asset.substring(urlMatcher.start(1), urlMatcher.end(1)));
 
             foundUrl.ifPresent(u -> {
                 logger.debug(String.format("Found valid url: %s\n", foundUrl));
@@ -81,40 +81,30 @@ public class Worker implements Callable<Object> {
             });
         }
 
-        graph.replace(url.toString(), foundUrls);
+        graph.replace(url, foundUrls);
     }
 
-    private void saveAsset(URL url, String asset) throws IOException, InterruptedException {
+    private void saveAsset(URL url, String asset) throws IOException {
         try {
-            File targetFile = new File(saveToPath + url.getPath());
-            File parent = targetFile.getParentFile();
-
-            if (!parent.mkdirs() && !parent.isDirectory()) {
-                String message = String.format("Error when creating a directory: %s\n", parent);
-                logger.error(message);
-                throw new IOException(message);
-            }
-
-            Files.write(Paths.get(targetFile.getPath()), asset.getBytes());
+            String targetPath = saveToPath + url.getPath().replace('/', '_');
+            Files.write(Paths.get(targetPath), asset.getBytes());
         } catch (IOException e) {
             logger.error(String.format("Error when saving an asset: %s\n", e.getMessage()));
             throw e;
         }
     }
 
-    private Optional<String> fixUrl(URL url, String foundUrl) {
-        if ("#".equals(foundUrl)
-                || foundUrl.startsWith("http")
-                || foundUrl.startsWith("javascript")
-                || foundUrl.startsWith("//")
-                || foundUrl.startsWith("mailto"))
+    private Optional<URL> validateUrl(URL url, String foundUrl) {
+        if (!foundUrl.startsWith("http")) {
+            foundUrl = "http://" + url.getHost() + url.getPath().substring(0, url.getPath().lastIndexOf('/') + 1) + foundUrl;
+        }
+
+        try {
+            URL u = new URL(foundUrl);
+            return !u.getPath().equals("/") && u.getHost().equals(url.getHost()) ? Optional.of(u) : Optional.empty();
+        } catch (MalformedURLException e) {
+            logger.error(String.format("URL: %s\n", foundUrl));
             return Optional.empty();
-
-        // relative to the root URL
-        if (foundUrl.startsWith("/"))
-            return Optional.of("http://" + url.getHost() + foundUrl);
-
-        // relative to the current URL
-        return Optional.of(url.toString().substring(0, url.toString().lastIndexOf('/') + 1) + foundUrl);
+        }
     }
 }
