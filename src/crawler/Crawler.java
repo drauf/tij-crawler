@@ -1,11 +1,13 @@
 package crawler;
 
+import crawler.graph.BasicAnalysis;
 import crawler.worker.Worker;
 import logger.GuiLogger;
 import logger.Logger;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.Callable;
@@ -26,12 +28,18 @@ public class Crawler implements Runnable {
     public Crawler(String initialUrl, int threads) {
         NUMBER_OF_THREADS = threads;
         graph = new ConcurrentHashMap<>();
+        graph.put(initialUrl, Collections.emptyList());
         queue = new LinkedBlockingQueue<>();
         queue.offer(initialUrl);
     }
 
     @Override
     public void run() {
+        runWorkers();
+        analyzeGraph();
+    }
+
+    private void runWorkers() {
         ExecutorService service = null;
         try {
             service = Executors.newCachedThreadPool();
@@ -43,7 +51,6 @@ public class Crawler implements Runnable {
         } finally {
             if (service != null) service.shutdown();
         }
-
         logger.info("All workers finished\n");
     }
 
@@ -52,5 +59,15 @@ public class Crawler implements Runnable {
         IntStream.rangeClosed(1, count)
                 .forEach(i -> workers.add(new Worker(graph, queue)));
         return workers;
+    }
+
+    private void analyzeGraph() {
+        ExecutorService service = null;
+        try {
+            service = Executors.newCachedThreadPool();
+            service.submit(new BasicAnalysis(graph));
+        } finally {
+            if (service != null) service.shutdown();
+        }
     }
 }
