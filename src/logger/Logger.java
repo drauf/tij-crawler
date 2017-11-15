@@ -6,7 +6,7 @@ public abstract class Logger {
         DEBUG, INFO, WARN, ERROR
     }
 
-    private LOGGING_LEVEL loggingLevel = LOGGING_LEVEL.DEBUG;
+    private static final LOGGING_LEVEL loggingLevel = LOGGING_LEVEL.INFO;
 
     public static Logger getLogger(Class c) {
         return GuiLogger.getInstance();
@@ -15,10 +15,6 @@ public abstract class Logger {
     public abstract void setHandler(Object handler);
 
     abstract void log(String message);
-
-    public void setLogLevel(LOGGING_LEVEL level) {
-        loggingLevel = level;
-    }
 
     public void clear() {
         throw new UnsupportedOperationException();

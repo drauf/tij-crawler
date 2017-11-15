@@ -10,15 +10,13 @@ import static gui.Constants.*;
 
 public class MainWindow extends JFrame {
 
-    private final Logger logger = Logger.getLogger(GuiLogger.class);
-
     private int numberOfThreads = 1;
     private CrawlerMode mode = CrawlerMode.SYNC;
     private final JTextField urlTextField = new JTextField(URL_TEXT_FIELD_TEXT);
     private final JTextArea outputTextArea = new JTextArea();
 
     public MainWindow() {
-        logger.setHandler(outputTextArea);
+        Logger.getLogger(GuiLogger.class).setHandler(outputTextArea);
         initUI();
     }
 

@@ -43,6 +43,8 @@ public class Crawler implements Runnable {
         } finally {
             if (service != null) service.shutdown();
         }
+
+        logger.info("All workers finished\n");
     }
 
     private List<? extends Callable<Object>> createWorkers(ConcurrentMap<String, List<String>> graph, BlockingQueue<String> queue, int count) {
