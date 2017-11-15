@@ -14,6 +14,7 @@ import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ConcurrentMap;
@@ -71,14 +72,13 @@ public class Worker implements Callable<Object> {
         Matcher urlMatcher = pattern.matcher(asset);
 
         while (urlMatcher.find()) {
-            String foundUrl = asset.substring(urlMatcher.start(1), urlMatcher.end(1));
-            foundUrl = fixUrl(url, foundUrl);
+            Optional<String> foundUrl = fixUrl(url, asset.substring(urlMatcher.start(1), urlMatcher.end(1)));
 
-            if (foundUrl != null && foundUrl.endsWith(".html")) {
+            foundUrl.ifPresent(u -> {
                 logger.debug(String.format("Found valid url: %s\n", foundUrl));
-                foundUrls.add(foundUrl);
-                if (graph.putIfAbsent(foundUrl, Collections.emptyList()) == null) queue.offer(foundUrl);
-            }
+                foundUrls.add(u);
+                if (graph.putIfAbsent(u, Collections.emptyList()) == null) queue.offer(u);
+            });
         }
 
         graph.replace(url.toString(), foundUrls);
@@ -102,15 +102,19 @@ public class Worker implements Callable<Object> {
         }
     }
 
-    private String fixUrl(URL url, String foundUrl) {
-        if ("#".equals(foundUrl)) return null; // skip #
-        if (foundUrl.startsWith("javascript")) return null; // skip javascript:void(0)
-        if (foundUrl.startsWith("http")) return null; // skip external URLs
-        if (foundUrl.startsWith("//")) return null; // skip external URLs without protocol
+    private Optional<String> fixUrl(URL url, String foundUrl) {
+        if ("#".equals(foundUrl)
+                || foundUrl.startsWith("http")
+                || foundUrl.startsWith("javascript")
+                || foundUrl.startsWith("//")
+                || foundUrl.startsWith("mailto"))
+            return Optional.empty();
 
         // relative to the root URL
-        if (foundUrl.startsWith("/")) return "http://" + url.getHost() + foundUrl;
+        if (foundUrl.startsWith("/"))
+            return Optional.of("http://" + url.getHost() + foundUrl);
+
         // relative to the current URL
-        return url.toString().substring(0, url.toString().lastIndexOf('/') + 1) + foundUrl;
+        return Optional.of(url.toString().substring(0, url.toString().lastIndexOf('/') + 1) + foundUrl);
     }
 }
