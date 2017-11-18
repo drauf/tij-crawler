@@ -3,7 +3,7 @@ package logger;
 public abstract class Logger {
 
     enum LOGGING_LEVEL {
-        DEBUG, INFO, WARN, ERROR
+        DEBUG, INFO, WARN, ERROR, RESULT
     }
 
     private static final LOGGING_LEVEL loggingLevel = LOGGING_LEVEL.INFO;
@@ -34,6 +34,10 @@ public abstract class Logger {
 
     public void error(String message) {
         compareLevelAndLog(message, LOGGING_LEVEL.ERROR);
+    }
+
+    public void result(String message) {
+        compareLevelAndLog(message, LOGGING_LEVEL.RESULT);
     }
 
     private void compareLevelAndLog(String message, LOGGING_LEVEL level) {

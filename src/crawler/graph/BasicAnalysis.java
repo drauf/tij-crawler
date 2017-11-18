@@ -10,7 +10,7 @@ import java.util.concurrent.Callable;
 import java.util.concurrent.ConcurrentMap;
 import java.util.stream.Collectors;
 
-public class BasicAnalysis implements Callable<Object> {
+public class BasicAnalysis implements Callable<Void> {
 
     private final Logger logger = Logger.getLogger(GuiLogger.class);
     private final ConcurrentMap<URL, List<URL>> graph;
@@ -20,13 +20,13 @@ public class BasicAnalysis implements Callable<Object> {
     }
 
     @Override
-    public Object call() throws Exception {
+    public Void call() throws Exception {
         StringBuilder sb = new StringBuilder("\n\n");
         analyzeVerticesNumber(sb);
         analyzeEdgesNumber(sb);
         analyzeOutDegrees(sb);
         analyzeInDegrees(sb);
-        logger.info(sb.toString());
+        logger.result(sb.toString());
         return null;
     }
 

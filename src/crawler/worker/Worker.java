@@ -22,7 +22,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-public class Worker implements Callable<Object> {
+public class Worker implements Callable<Void> {
 
     private static final int TIMEOUT = 1_000;
     private static final String saveToPath = "/Projects/tij/";
@@ -37,7 +37,7 @@ public class Worker implements Callable<Object> {
     }
 
     @Override
-    public Object call() throws InterruptedException {
+    public Void call() throws InterruptedException {
         URL url;
         while ((url = queue.poll(TIMEOUT, TimeUnit.MILLISECONDS)) != null) {
             try {

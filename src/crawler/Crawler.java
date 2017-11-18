@@ -22,6 +22,7 @@ import java.util.stream.IntStream;
 
 public class Crawler implements Runnable {
 
+    private static final int nanoToMili = 1_000_000;
     private final Logger logger = Logger.getLogger(GuiLogger.class);
     private final int NUMBER_OF_THREADS;
     private final ConcurrentMap<URL, List<URL>> graph;
@@ -38,15 +39,18 @@ public class Crawler implements Runnable {
 
     @Override
     public void run() {
+        long startingTime = System.nanoTime();
         runWorkers();
+        logger.result(String.format("Workers finished after: %dms\n", (System.nanoTime() - startingTime) / nanoToMili));
         analyzeGraph();
+        logger.result(String.format("Graph analyzed after: %dms\n", (System.nanoTime() - startingTime) / nanoToMili));
     }
 
     private void runWorkers() {
         ExecutorService service = null;
         try {
             service = Executors.newCachedThreadPool();
-            Collection<? extends Callable<Object>> workers = createWorkers(graph, queue, NUMBER_OF_THREADS);
+            Collection<? extends Callable<Void>> workers = createWorkers(graph, queue, NUMBER_OF_THREADS);
             logger.debug("Invoking worker threads\n");
             service.invokeAll(workers);
         } catch (InterruptedException e) {
@@ -57,7 +61,7 @@ public class Crawler implements Runnable {
         logger.info("All workers finished\n");
     }
 
-    private List<? extends Callable<Object>> createWorkers(ConcurrentMap<URL, List<URL>> graph, BlockingQueue<URL> queue, int count) {
+    private List<? extends Callable<Void>> createWorkers(ConcurrentMap<URL, List<URL>> graph, BlockingQueue<URL> queue, int count) {
         final List<Worker> workers = new ArrayList<>();
         IntStream.rangeClosed(1, count)
                 .forEach(i -> workers.add(new Worker(graph, queue)));
