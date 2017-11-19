@@ -30,17 +30,17 @@ public class BasicAnalysis implements Callable<Void> {
         return null;
     }
 
-    private void analyzeVerticesNumber(StringBuilder sb) {
+    void analyzeVerticesNumber(StringBuilder sb) {
         int vertices = graph.size();
         sb.append(String.format("Number of vertices: %d%n%n", vertices));
     }
 
-    private void analyzeEdgesNumber(StringBuilder sb) {
+    void analyzeEdgesNumber(StringBuilder sb) {
         int edges = graph.values().stream().mapToInt(List::size).sum();
         sb.append(String.format("Number of edges: %d%n%n", edges));
     }
 
-    private void analyzeOutDegrees(StringBuilder sb) {
+    void analyzeOutDegrees(StringBuilder sb) {
         graph.values().stream()
                 .mapToInt(List::size).boxed()
                 .collect(Collectors.groupingBy(Integer::intValue, Collectors.counting()))
@@ -48,7 +48,7 @@ public class BasicAnalysis implements Callable<Void> {
         sb.append("\n");
     }
 
-    private void analyzeInDegrees(StringBuilder sb) {
+    void analyzeInDegrees(StringBuilder sb) {
         graph.entrySet().stream()
                 .collect(Collectors.groupingBy(Map.Entry::getKey, Collectors.counting()))
                 .values().stream()

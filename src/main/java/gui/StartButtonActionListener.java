@@ -18,6 +18,7 @@ class StartButtonActionListener implements ActionListener {
     }
 
     public void actionPerformed(ActionEvent e) {
+        logger.clear();
         logger.result(String.format("Starting crawler with %d threads with base url: %s%n", mainWindow.getNumberOfThreads(), mainWindow.getUrl()));
         try {
             (new Thread(new Crawler(mainWindow.getUrl(), mainWindow.getNumberOfThreads()))).start();

@@ -1,3 +1,5 @@
+package main.java;
+
 import gui.MainWindow;
 
 public class Main {
