@@ -1,5 +1,6 @@
 package crawler.worker;
 
+import crawler.utils.CrawlerUtils;
 import logger.GuiLogger;
 import logger.Logger;
 
@@ -7,7 +8,6 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.URI;
-import java.net.URISyntaxException;
 import java.net.URL;
 import java.net.URLConnection;
 import java.nio.charset.Charset;
@@ -69,26 +69,27 @@ public class Worker implements Callable<Void> {
         return content.toString();
     }
 
-    private void parseAsset(URI url, String asset) throws InterruptedException {
+    private void parseAsset(URI baseUrl, String asset) throws InterruptedException {
         List<URI> allFoundUrls = new ArrayList<>();
         List<URI> notVisitedUrls = new ArrayList<>();
         Pattern pattern = Pattern.compile("href=\"(.*?)\"", Pattern.CASE_INSENSITIVE);
         Matcher urlMatcher = pattern.matcher(asset);
 
         while (urlMatcher.find()) {
-            Optional<URI> foundUrl = validateUrl(url, asset.substring(urlMatcher.start(1), urlMatcher.end(1)));
+            String foundUrl = asset.substring(urlMatcher.start(1), urlMatcher.end(1));
+            Optional<URI> validatedUrl = CrawlerUtils.validateUrl(baseUrl, foundUrl);
 
-            foundUrl.ifPresent(u -> {
-                logger.debug(String.format("Found valid url: %s\n", foundUrl));
-                allFoundUrls.add(u);
+            validatedUrl.ifPresent(url -> {
+                logger.debug(String.format("Found valid url: %s\n", url));
+                allFoundUrls.add(url);
 
-                if (graph.putIfAbsent(u, Collections.emptyList()) == null) {
-                    notVisitedUrls.add(u);
+                if (graph.putIfAbsent(url, Collections.emptyList()) == null) {
+                    notVisitedUrls.add(url);
                 }
             });
         }
 
-        graph.replace(url, allFoundUrls);
+        graph.replace(baseUrl, allFoundUrls);
         executeRecursiveTasks(notVisitedUrls);
     }
 
@@ -106,19 +107,6 @@ public class Worker implements Callable<Void> {
         } catch (IOException e) {
             logger.error(String.format("Error when saving an asset: %s%n", e.getMessage()));
             throw e;
-        }
-    }
-
-    private Optional<URI> validateUrl(URI url, String foundUrl) {
-        if (!foundUrl.startsWith("http")) {
-            foundUrl = "http://" + url.getHost() + url.getPath().substring(0, url.getPath().lastIndexOf('/') + 1) + foundUrl;
-        }
-
-        try {
-            URI u = new URI(foundUrl);
-            return !u.getPath().equals("/") && u.getHost().equals(url.getHost()) ? Optional.of(u) : Optional.empty();
-        } catch (URISyntaxException e) {
-            return Optional.empty();
         }
     }
 }
