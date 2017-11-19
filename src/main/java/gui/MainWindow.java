@@ -1,6 +1,7 @@
 package gui;
 
 import crawler.CrawlerMode;
+import crawler.ThreadPool;
 import logger.GuiLogger;
 import logger.Logger;
 
@@ -12,6 +13,7 @@ public class MainWindow extends JFrame {
 
     private int numberOfThreads = 1;
     private CrawlerMode mode = CrawlerMode.SYNC;
+    private ThreadPool threadPool = ThreadPool.CUSTOM;
     private final JTextField urlTextField = new JTextField(URL_TEXT_FIELD_TEXT);
     private final JTextArea outputTextArea = new JTextArea();
 
@@ -38,6 +40,14 @@ public class MainWindow extends JFrame {
 
     void setMode(CrawlerMode m) {
         mode = m;
+    }
+
+    public ThreadPool getThreadPool() {
+        return threadPool;
+    }
+
+    public void setThreadPool(ThreadPool threadPool) {
+        this.threadPool = threadPool;
     }
 
     private void initUI() {
@@ -70,6 +80,16 @@ public class MainWindow extends JFrame {
         selectMode.setBounds(SELECT_MODE_X, SELECT_MODE_Y, SELECT_MODE_WIDTH, SELECT_MODE_HEIGHT);
         getContentPane().add(selectMode);
         selectMode.addActionListener(new ModeSelectorActionListener(this));
+
+        JLabel selectThreadPoolLabel = new JLabel(SELECT_THREAD_POOL_LABEL_TEXT);
+        selectThreadPoolLabel.setBounds(SELECT_THREAD_POOL_LABEL_X, SELECT_THREAD_POOL_LABEL_Y, SELECT_THREAD_POOL_LABEL_WIDTH, SELECT_THREAD_POOL_LABEL_HEIGHT);
+        getContentPane().add(selectThreadPoolLabel);
+
+        String[] threadPools = {"CustomThreadPool", "FixedThreadPool"};
+        JComboBox<String> selectThreadPool = new JComboBox<>(threadPools);
+        selectThreadPool.setBounds(SELECT_THREAD_POOL_X, SELECT_THREAD_POOL_Y, SELECT_THREAD_POOL_WIDTH, SELECT_THREAD_POOL_HEIGHT);
+        getContentPane().add(selectThreadPool);
+        selectThreadPool.addActionListener(new ThreadPoolSelectorActionListener(this));
 
         JScrollPane scrollPane = new JScrollPane(outputTextArea);
         scrollPane.setBounds(OUTPUT_TEXT_AREA_X, OUTPUT_TEXT_AREA_Y, OUTPUT_TEXT_AREA_WIDTH, OUTPUT_TEXT_AREA_HEIGHT);
