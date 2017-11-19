@@ -6,7 +6,7 @@ import logger.Logger;
 
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.net.MalformedURLException;
+import java.net.URISyntaxException;
 
 class StartButtonActionListener implements ActionListener {
 
@@ -18,10 +18,10 @@ class StartButtonActionListener implements ActionListener {
     }
 
     public void actionPerformed(ActionEvent e) {
-        logger.info(String.format("Starting crawler with %d threads for url: %s\n", mainWindow.getNumberOfThreads(), mainWindow.getUrl()));
+        logger.result(String.format("Starting crawler with %d threads with base url: %s%n", mainWindow.getNumberOfThreads(), mainWindow.getUrl()));
         try {
             (new Thread(new Crawler(mainWindow.getUrl(), mainWindow.getNumberOfThreads()))).start();
-        } catch (MalformedURLException ex) {
+        } catch (URISyntaxException ex) {
             logger.error(String.format("Invalid initial URL: %s", ex.getMessage()));
         }
     }

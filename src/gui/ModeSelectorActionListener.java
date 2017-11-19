@@ -20,7 +20,7 @@ class ModeSelectorActionListener implements ActionListener {
     public void actionPerformed(ActionEvent e) {
         JComboBox cb = (JComboBox) e.getSource();
         String mode = (String) cb.getSelectedItem();
-        logger.debug(String.format("Selected mode: %s\n", mode));
+        logger.debug(String.format("Selected mode: %s%n", mode));
         mainWindow.setMode("Synchronous".equals(mode) ? CrawlerMode.SYNC : CrawlerMode.ASYNC);
     }
 }

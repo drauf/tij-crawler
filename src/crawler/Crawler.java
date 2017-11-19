@@ -5,8 +5,8 @@ import crawler.worker.Worker;
 import logger.GuiLogger;
 import logger.Logger;
 
-import java.net.MalformedURLException;
-import java.net.URL;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
@@ -20,12 +20,12 @@ public class Crawler implements Runnable {
     private final Logger logger = Logger.getLogger(GuiLogger.class);
 
     private final int numberOfThreads;
-    private final URL initialUrl;
-    private final ConcurrentMap<URL, List<URL>> graph;
+    private final URI initialUrl;
+    private final ConcurrentMap<URI, List<URI>> graph;
 
-    public Crawler(String url, int threads) throws MalformedURLException {
+    public Crawler(String url, int threads) throws URISyntaxException {
         numberOfThreads = threads;
-        initialUrl = new URL(url);
+        initialUrl = new URI(url);
         graph = new ConcurrentHashMap<>();
         graph.put(this.initialUrl, Collections.emptyList());
     }
@@ -34,9 +34,9 @@ public class Crawler implements Runnable {
     public void run() {
         long startingTime = System.nanoTime();
         runWorkers();
-        logger.result(String.format("Workers finished after: %.4f ms\n", (System.nanoTime() - startingTime) * nanoToMili));
+        logger.result(String.format("Workers finished after: %.4f ms%n", (System.nanoTime() - startingTime) * nanoToMili));
         analyzeGraph();
-        logger.result(String.format("Graph analyzed after: %.4f ms\n", (System.nanoTime() - startingTime) * nanoToMili));
+        logger.result(String.format("Graph analyzed after: %.4f ms%n", (System.nanoTime() - startingTime) * nanoToMili));
     }
 
     private void runWorkers() {

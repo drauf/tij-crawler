@@ -3,7 +3,7 @@ package crawler.graph;
 import logger.GuiLogger;
 import logger.Logger;
 
-import java.net.URL;
+import java.net.URI;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.Callable;
@@ -13,9 +13,9 @@ import java.util.stream.Collectors;
 public class BasicAnalysis implements Callable<Void> {
 
     private final Logger logger = Logger.getLogger(GuiLogger.class);
-    private final ConcurrentMap<URL, List<URL>> graph;
+    private final ConcurrentMap<URI, List<URI>> graph;
 
-    public BasicAnalysis(ConcurrentMap<URL, List<URL>> g) {
+    public BasicAnalysis(ConcurrentMap<URI, List<URI>> g) {
         graph = g;
     }
 
@@ -32,19 +32,19 @@ public class BasicAnalysis implements Callable<Void> {
 
     private void analyzeVerticesNumber(StringBuilder sb) {
         int vertices = graph.size();
-        sb.append(String.format("Number of vertices: %d\n\n", vertices));
+        sb.append(String.format("Number of vertices: %d%n%n", vertices));
     }
 
     private void analyzeEdgesNumber(StringBuilder sb) {
         int edges = graph.values().stream().mapToInt(List::size).sum();
-        sb.append(String.format("Number of edges: %d\n\n", edges));
+        sb.append(String.format("Number of edges: %d%n%n", edges));
     }
 
     private void analyzeOutDegrees(StringBuilder sb) {
         graph.values().stream()
                 .mapToInt(List::size).boxed()
                 .collect(Collectors.groupingBy(Integer::intValue, Collectors.counting()))
-                .forEach((outDegree, count) -> sb.append(String.format("Vertices with out degree %d: %d\n", outDegree, count)));
+                .forEach((outDegree, count) -> sb.append(String.format("Vertices with out degree %d: %d%n", outDegree, count)));
         sb.append("\n");
     }
 
@@ -54,6 +54,6 @@ public class BasicAnalysis implements Callable<Void> {
                 .values().stream()
                 .mapToInt(Long::intValue).boxed()
                 .collect(Collectors.groupingBy(Integer::intValue, Collectors.counting()))
-                .forEach((inDegree, count) -> sb.append(String.format("Vertices with in degree %d: %d\n", inDegree, count)));
+                .forEach((inDegree, count) -> sb.append(String.format("Vertices with in degree %d: %d%n", inDegree, count)));
     }
 }

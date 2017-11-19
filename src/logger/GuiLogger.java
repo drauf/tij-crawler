@@ -5,7 +5,7 @@ import javax.swing.*;
 public class GuiLogger extends Logger {
 
     private final static GuiLogger instance = new GuiLogger();
-    private static JTextArea outputTextArea;
+    private JTextArea outputTextArea;
 
     private GuiLogger() {
     }

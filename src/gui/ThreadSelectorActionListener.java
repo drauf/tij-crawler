@@ -19,7 +19,7 @@ class ThreadSelectorActionListener implements ActionListener {
     public void actionPerformed(ActionEvent e) {
         JComboBox cb = (JComboBox) e.getSource();
         Integer threads = (Integer) cb.getSelectedItem();
-        logger.debug(String.format("Selected number of threads: %s\n", threads));
+        logger.debug(String.format("Selected number of threads: %s%n", threads));
         mainWindow.setNumberOfThreads(threads);
     }
 }
