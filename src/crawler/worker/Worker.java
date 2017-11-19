@@ -15,38 +15,36 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
-import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ConcurrentMap;
-import java.util.concurrent.TimeUnit;
+import java.util.concurrent.ExecutorService;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 public class Worker implements Callable<Void> {
 
-    private static final int TIMEOUT = 1_000;
     private static final String saveToPath = "/Projects/tij/";
     private static final Logger logger = Logger.getLogger(GuiLogger.class);
 
-    private ConcurrentMap<URL, List<URL>> graph;
-    private BlockingQueue<URL> queue;
+    private final URL urlToParse;
+    private final ConcurrentMap<URL, List<URL>> graph;
+    private final ExecutorService executorService;
 
-    public Worker(ConcurrentMap<URL, List<URL>> graph, BlockingQueue<URL> queue) {
+    public Worker(URL url, ConcurrentMap<URL, List<URL>> graph, ExecutorService executorService) {
+        this.urlToParse = url;
         this.graph = graph;
-        this.queue = queue;
+        this.executorService = executorService;
     }
 
     @Override
     public Void call() throws InterruptedException {
-        URL url;
-        while ((url = queue.poll(TIMEOUT, TimeUnit.MILLISECONDS)) != null) {
-            try {
-                String asset = downloadAsset(url);
-                parseAsset(url, asset);
-                saveAsset(url, asset);
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
+        try {
+            String asset = downloadAsset(urlToParse);
+            parseAsset(urlToParse, asset);
+            saveAsset(urlToParse, asset);
+        } catch (IOException e) {
+            e.printStackTrace();
         }
         logger.debug("Worker ended peacefully\n");
         return null;
@@ -69,8 +67,9 @@ public class Worker implements Callable<Void> {
         return content.toString();
     }
 
-    private void parseAsset(URL url, String asset) {
-        List<URL> foundUrls = new ArrayList<>();
+    private void parseAsset(URL url, String asset) throws InterruptedException {
+        List<URL> allFoundUrls = new ArrayList<>();
+        List<URL> notVisitedUrls = new ArrayList<>();
         Pattern pattern = Pattern.compile("href=\"(.*?)\"", Pattern.CASE_INSENSITIVE);
         Matcher urlMatcher = pattern.matcher(asset);
 
@@ -79,12 +78,23 @@ public class Worker implements Callable<Void> {
 
             foundUrl.ifPresent(u -> {
                 logger.debug(String.format("Found valid url: %s\n", foundUrl));
-                foundUrls.add(u);
-                if (graph.putIfAbsent(u, Collections.emptyList()) == null) queue.offer(u);
+                allFoundUrls.add(u);
+
+                if (graph.putIfAbsent(u, Collections.emptyList()) == null) {
+                    notVisitedUrls.add(u);
+                }
             });
         }
 
-        graph.replace(url, foundUrls);
+        graph.replace(url, allFoundUrls);
+        executeRecursiveTasks(notVisitedUrls);
+    }
+
+    private void executeRecursiveTasks(List<URL> notVisitedUrls) throws InterruptedException {
+        List<Worker> workers = notVisitedUrls.stream()
+                .map(url -> new Worker(url, graph, executorService))
+                .collect(Collectors.toList());
+        executorService.invokeAll(workers);
     }
 
     private void saveAsset(URL url, String asset) throws IOException {

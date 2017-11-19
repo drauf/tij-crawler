@@ -7,65 +7,48 @@ import logger.Logger;
 
 import java.net.MalformedURLException;
 import java.net.URL;
-import java.util.ArrayList;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
-import java.util.concurrent.BlockingQueue;
-import java.util.concurrent.Callable;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import java.util.concurrent.LinkedBlockingQueue;
-import java.util.stream.IntStream;
 
 public class Crawler implements Runnable {
 
-    private static final int nanoToMili = 1_000_000;
+    private static final double nanoToMili = 1.0 / 1_000_000;
     private final Logger logger = Logger.getLogger(GuiLogger.class);
-    private final int NUMBER_OF_THREADS;
-    private final ConcurrentMap<URL, List<URL>> graph;
-    private final BlockingQueue<URL> queue;
 
-    public Crawler(String initialUrl, int threads) throws MalformedURLException {
-        NUMBER_OF_THREADS = threads;
-        URL url = new URL(initialUrl);
+    private final int numberOfThreads;
+    private final URL initialUrl;
+    private final ConcurrentMap<URL, List<URL>> graph;
+
+    public Crawler(String url, int threads) throws MalformedURLException {
+        numberOfThreads = threads;
+        initialUrl = new URL(url);
         graph = new ConcurrentHashMap<>();
-        graph.put(url, Collections.emptyList());
-        queue = new LinkedBlockingQueue<>();
-        queue.offer(url);
+        graph.put(this.initialUrl, Collections.emptyList());
     }
 
     @Override
     public void run() {
         long startingTime = System.nanoTime();
         runWorkers();
-        logger.result(String.format("Workers finished after: %dms\n", (System.nanoTime() - startingTime) / nanoToMili));
+        logger.result(String.format("Workers finished after: %.4f ms\n", (System.nanoTime() - startingTime) * nanoToMili));
         analyzeGraph();
-        logger.result(String.format("Graph analyzed after: %dms\n", (System.nanoTime() - startingTime) / nanoToMili));
+        logger.result(String.format("Graph analyzed after: %.4f ms\n", (System.nanoTime() - startingTime) * nanoToMili));
     }
 
     private void runWorkers() {
         ExecutorService service = null;
         try {
-            service = Executors.newCachedThreadPool();
-            Collection<? extends Callable<Void>> workers = createWorkers(graph, queue, NUMBER_OF_THREADS);
-            logger.debug("Invoking worker threads\n");
-            service.invokeAll(workers);
+            service = Executors.newFixedThreadPool(numberOfThreads);
+            service.invokeAll(Collections.singletonList(new Worker(initialUrl, graph, service)));
         } catch (InterruptedException e) {
             logger.error(e.getMessage());
         } finally {
             if (service != null) service.shutdown();
         }
-        logger.info("All workers finished\n");
-    }
-
-    private List<? extends Callable<Void>> createWorkers(ConcurrentMap<URL, List<URL>> graph, BlockingQueue<URL> queue, int count) {
-        final List<Worker> workers = new ArrayList<>();
-        IntStream.rangeClosed(1, count)
-                .forEach(i -> workers.add(new Worker(graph, queue)));
-        return workers;
     }
 
     private void analyzeGraph() {
