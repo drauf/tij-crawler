@@ -9,8 +9,8 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
@@ -21,7 +21,7 @@ public class Crawler implements Runnable {
 
     private final int numberOfThreads;
     private final URI initialUrl;
-    private final ConcurrentMap<URI, List<URI>> graph;
+    private final Map<URI, List<URI>> graph;
 
     public Crawler(String url, int threads) throws URISyntaxException {
         numberOfThreads = threads;

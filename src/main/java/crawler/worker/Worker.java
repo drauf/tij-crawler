@@ -16,9 +16,9 @@ import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.Callable;
-import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.ExecutorService;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -30,10 +30,10 @@ public class Worker implements Callable<Void> {
     private static final Logger logger = Logger.getLogger(GuiLogger.class);
 
     private final URI urlToParse;
-    private final ConcurrentMap<URI, List<URI>> graph;
+    private final Map<URI, List<URI>> graph;
     private final ExecutorService executorService;
 
-    public Worker(URI url, ConcurrentMap<URI, List<URI>> graph, ExecutorService executorService) {
+    public Worker(URI url, Map<URI, List<URI>> graph, ExecutorService executorService) {
         this.urlToParse = url;
         this.graph = graph;
         this.executorService = executorService;
