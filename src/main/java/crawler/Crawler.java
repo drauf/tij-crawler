@@ -14,19 +14,20 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
 import java.util.function.Supplier;
 
-public abstract class Crawler implements Runnable {
+public final class Crawler implements Runnable {
 
     private static final double nanoToMili = 1.0 / 1_000_000;
     private final Logger logger = Logger.getLogger(GuiLogger.class);
 
     private final URI initialUrl;
     private final Map<URI, List<URI>> graph;
-    Supplier<ExecutorService> executorServiceSupplier;
+    private final Supplier<ExecutorService> executorServiceSupplier;
 
-    Crawler(String url) throws URISyntaxException {
+    public Crawler(String url, Supplier<ExecutorService> supplier) throws URISyntaxException {
         initialUrl = new URI(url);
         graph = new ConcurrentHashMap<>();
         graph.put(this.initialUrl, Collections.emptyList());
+        executorServiceSupplier = supplier;
     }
 
     @Override

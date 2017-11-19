@@ -1,6 +1,6 @@
 package gui;
 
-import crawler.CrawlerMode;
+import enums.CrawlerMode;
 import logger.GuiLogger;
 import logger.Logger;
 
@@ -8,7 +8,7 @@ import javax.swing.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 
-class ModeSelectorActionListener implements ActionListener {
+final class ModeSelectorActionListener implements ActionListener {
 
     private final Logger logger = Logger.getLogger(GuiLogger.class);
     private final MainWindow mainWindow;

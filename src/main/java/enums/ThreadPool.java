@@ -1,4 +1,4 @@
-package crawler;
+package enums;
 
 public enum ThreadPool {
     FIXED, CUSTOM

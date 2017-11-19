@@ -10,7 +10,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-public class BasicAnalysis implements Runnable {
+public final class BasicAnalysis implements Runnable {
 
     private final Logger logger = Logger.getLogger(GuiLogger.class);
     private final Map<URI, List<URI>> graph;

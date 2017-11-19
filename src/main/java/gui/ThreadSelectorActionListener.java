@@ -7,7 +7,7 @@ import javax.swing.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 
-class ThreadSelectorActionListener implements ActionListener {
+final class ThreadSelectorActionListener implements ActionListener {
 
     private final Logger logger = Logger.getLogger(GuiLogger.class);
     private final MainWindow mainWindow;

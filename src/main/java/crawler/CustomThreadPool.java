@@ -13,8 +13,7 @@ import java.util.concurrent.TimeoutException;
 
 public class CustomThreadPool implements ExecutorService {
 
-    CustomThreadPool(int nThreads) {
-
+    public CustomThreadPool(int nThreads) {
     }
 
     @Override

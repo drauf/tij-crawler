@@ -1,7 +1,7 @@
 package gui;
 
-import crawler.CrawlerMode;
-import crawler.ThreadPool;
+import enums.CrawlerMode;
+import enums.ThreadPool;
 import logger.GuiLogger;
 import logger.Logger;
 
@@ -9,7 +9,7 @@ import javax.swing.*;
 
 import static gui.Constants.*;
 
-public class MainWindow extends JFrame {
+final public class MainWindow extends JFrame {
 
     private int numberOfThreads = 1;
     private CrawlerMode mode = CrawlerMode.SYNC;
@@ -42,11 +42,11 @@ public class MainWindow extends JFrame {
         mode = m;
     }
 
-    public ThreadPool getThreadPool() {
+    ThreadPool getThreadPool() {
         return threadPool;
     }
 
-    public void setThreadPool(ThreadPool threadPool) {
+    void setThreadPool(ThreadPool threadPool) {
         this.threadPool = threadPool;
     }
 

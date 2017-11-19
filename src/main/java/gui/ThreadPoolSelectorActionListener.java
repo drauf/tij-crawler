@@ -1,6 +1,6 @@
 package gui;
 
-import crawler.ThreadPool;
+import enums.ThreadPool;
 import logger.GuiLogger;
 import logger.Logger;
 
@@ -8,7 +8,7 @@ import javax.swing.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 
-public class ThreadPoolSelectorActionListener implements ActionListener {
+final class ThreadPoolSelectorActionListener implements ActionListener {
 
     private final Logger logger = Logger.getLogger(GuiLogger.class);
     private final MainWindow mainWindow;
