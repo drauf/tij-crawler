@@ -5,12 +5,13 @@ import sun.reflect.generics.reflectiveObjects.NotImplementedException;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
+import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.Callable;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Future;
+import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -19,9 +20,9 @@ import java.util.stream.Stream;
 
 public class CustomThreadPool implements ExecutorService {
 
-    private final AtomicBoolean execute;
-    private Collection<SimpleThread> threads;
-    private final ConcurrentLinkedQueue<Callable<?>> callables;
+    private final AtomicBoolean isShutdown = new AtomicBoolean(false);
+    private final Collection<SimpleThread> threads;
+    private final BlockingQueue<Callable<?>> callables;
 
     private static class ThreadPoolException extends RuntimeException {
         ThreadPoolException(Throwable cause) {
@@ -29,26 +30,33 @@ public class CustomThreadPool implements ExecutorService {
         }
     }
 
-    private class SimpleThread extends Thread {
-        private AtomicBoolean execute;
-        private ConcurrentLinkedQueue<Callable<?>> runnables;
+    private static class SimpleThread extends Thread {
+        private final BlockingQueue<Callable<?>> callables;
+        private final long timeout;
+        private final TimeUnit unit;
 
-        SimpleThread(AtomicBoolean execute, ConcurrentLinkedQueue<Callable<?>> runnables) {
+        SimpleThread(BlockingQueue<Callable<?>> callables, long timeout, TimeUnit unit) {
             super();
-            this.execute = execute;
-            this.runnables = runnables;
+            this.callables = callables;
+            this.timeout = timeout;
+            this.unit = unit;
         }
 
         @Override
         public void run() {
             try {
-                while (execute.get() || !runnables.isEmpty()) {
-                    Callable<?> callable;
-                    while ((callable = runnables.poll()) != null) {
-                        callable.call();
-                    }
-                    Thread.sleep(1);
+                Callable<?> callable;
+                while ((callable = callables.poll(timeout, unit)) != null) {
+                    call(callable);
                 }
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+        }
+
+        private void call(Callable<?> callable) {
+            try {
+                callable.call();
             } catch (Exception e) {
                 throw new ThreadPoolException(e);
             }
@@ -56,14 +64,14 @@ public class CustomThreadPool implements ExecutorService {
     }
 
     public CustomThreadPool(int nThreads) {
-        execute = new AtomicBoolean(true);
-        callables = new ConcurrentLinkedQueue<>();
-        threads = Stream.generate(() -> new SimpleThread(execute, callables)).limit(nThreads).collect(Collectors.toList());
+        callables = new LinkedBlockingQueue<>();
+        threads = Stream.generate(() -> new SimpleThread(callables, 200, TimeUnit.MILLISECONDS)).limit(nThreads).collect(Collectors.toList());
+        threads.forEach(Thread::start);
     }
 
     @Override
     public void shutdown() {
-        execute.set(false);
+        isShutdown.set(true);
     }
 
     @Override
@@ -73,7 +81,7 @@ public class CustomThreadPool implements ExecutorService {
 
     @Override
     public boolean isShutdown() {
-        return execute.get();
+        return isShutdown.get();
     }
 
     @Override
@@ -88,7 +96,8 @@ public class CustomThreadPool implements ExecutorService {
 
     @Override
     public <T> Future<T> submit(Callable<T> task) {
-        throw new NotImplementedException();
+        callables.add(task);
+        return CompletableFuture.completedFuture(null);
     }
 
     @Override

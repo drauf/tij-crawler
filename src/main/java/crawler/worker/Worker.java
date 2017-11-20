@@ -22,7 +22,6 @@ import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutorService;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import java.util.stream.Collectors;
 
 public class Worker implements Callable<Void> {
 
@@ -45,8 +44,7 @@ public class Worker implements Callable<Void> {
             String asset = downloadAsset(urlToParse);
             parseAsset(urlToParse, asset);
             saveAsset(urlToParse, asset);
-        } catch (IOException e) {
-            e.printStackTrace();
+        } catch (IOException ignored) {
         }
         logger.debug("Worker ended peacefully\n");
         return null;
@@ -94,10 +92,9 @@ public class Worker implements Callable<Void> {
     }
 
     private void executeRecursiveTasks(List<URI> notVisitedUrls) throws InterruptedException {
-        List<Worker> workers = notVisitedUrls.stream()
+        notVisitedUrls.stream()
                 .map(url -> new Worker(url, graph, executorService))
-                .collect(Collectors.toList());
-        executorService.invokeAll(workers);
+                .forEach(executorService::submit);
     }
 
     private void saveAsset(URI url, String asset) throws IOException {
