@@ -1,15 +1,15 @@
 package gui;
 
 import crawler.Crawler;
-import crawler.CustomThreadPool;
+import crawler.threadpool.CustomThreadPool;
+import crawler.threadpool.ExecutorProxyThreadPool;
+import crawler.threadpool.ThreadPool;
 import logger.GuiLogger;
 import logger.Logger;
 
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.net.URISyntaxException;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 import java.util.function.Supplier;
 
 final class StartButtonActionListener implements ActionListener {
@@ -25,20 +25,20 @@ final class StartButtonActionListener implements ActionListener {
         logger.clear();
         logger.result(String.format("Starting crawler with %d threads, pool %s, base url: %s%n", mainWindow.getNumberOfThreads(), mainWindow.getThreadPool(), mainWindow.getUrl()));
         try {
-            Supplier<ExecutorService> executorServiceSupplier = getExecutorServiceSupplier();
-            Crawler crawler = new Crawler(mainWindow.getUrl(), executorServiceSupplier);
+            Supplier<ThreadPool> threadPoolSupplier = getThreadPoolSupplier();
+            Crawler crawler = new Crawler(mainWindow.getUrl(), threadPoolSupplier);
             (new Thread(crawler)).start();
         } catch (URISyntaxException ex) {
             logger.error(String.format("Invalid initial URL: %s", ex.getMessage()));
         }
     }
 
-    private Supplier<ExecutorService> getExecutorServiceSupplier() {
+    private Supplier<ThreadPool> getThreadPoolSupplier() {
         switch (mainWindow.getThreadPool()) {
             case CUSTOM:
                 return () -> new CustomThreadPool(mainWindow.getNumberOfThreads());
             case FIXED:
-                return () -> Executors.newFixedThreadPool(mainWindow.getNumberOfThreads());
+                return () -> new ExecutorProxyThreadPool(mainWindow.getNumberOfThreads());
             default:
                 throw new IllegalStateException();
         }

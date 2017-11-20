@@ -1,24 +1,17 @@
-package crawler;
-
-import sun.reflect.generics.reflectiveObjects.NotImplementedException;
+package crawler.threadpool;
 
 import java.util.Collection;
-import java.util.Collections;
-import java.util.List;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.Callable;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Future;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-public class CustomThreadPool implements ExecutorService {
+public class CustomThreadPool implements ThreadPool {
 
     private final AtomicBoolean isShutdown = new AtomicBoolean(false);
     private final Collection<SimpleThread> threads;
@@ -65,7 +58,8 @@ public class CustomThreadPool implements ExecutorService {
 
     public CustomThreadPool(int nThreads) {
         callables = new LinkedBlockingQueue<>();
-        threads = Stream.generate(() -> new SimpleThread(callables, 200, TimeUnit.MILLISECONDS)).limit(nThreads).collect(Collectors.toList());
+        threads = Stream.generate(() -> new SimpleThread(callables, 250, TimeUnit.MILLISECONDS))
+                .limit(nThreads).collect(Collectors.toList());
         threads.forEach(Thread::start);
     }
 
@@ -75,44 +69,17 @@ public class CustomThreadPool implements ExecutorService {
     }
 
     @Override
-    public List<Runnable> shutdownNow() {
-        throw new NotImplementedException();
-    }
-
-    @Override
-    public boolean isShutdown() {
-        return isShutdown.get();
-    }
-
-    @Override
-    public boolean isTerminated() {
-        throw new NotImplementedException();
-    }
-
-    @Override
-    public boolean awaitTermination(long timeout, TimeUnit unit) throws InterruptedException {
-        throw new NotImplementedException();
-    }
-
-    @Override
-    public <T> Future<T> submit(Callable<T> task) {
-        callables.add(task);
-        return CompletableFuture.completedFuture(null);
-    }
-
-    @Override
-    public <T> Future<T> submit(Runnable task, T result) {
-        throw new NotImplementedException();
-    }
-
-    @Override
-    public Future<?> submit(Runnable task) {
+    public void submit(Runnable task) {
         callables.add(RunnableAdapter.callable(task));
-        return CompletableFuture.completedFuture(null);
     }
 
     @Override
-    public <T> List<Future<T>> invokeAll(Collection<? extends Callable<T>> tasks) throws InterruptedException {
+    public <T> void invokeAll(Collection<? extends Callable<T>> tasks) throws InterruptedException {
+        tasks.forEach(this::submit);
+    }
+
+    @Override
+    public <T> void invokeAllAndAwait(Collection<? extends Callable<T>> tasks) throws InterruptedException {
         callables.addAll(tasks);
 
         while (true) {
@@ -124,7 +91,7 @@ public class CustomThreadPool implements ExecutorService {
                 }
             }
             if (flag) {
-                return Collections.emptyList();
+                return;
             }
             try {
                 Thread.sleep(1);
@@ -134,24 +101,9 @@ public class CustomThreadPool implements ExecutorService {
         }
     }
 
-    @Override
-    public <T> List<Future<T>> invokeAll(Collection<? extends Callable<T>> tasks, long timeout, TimeUnit unit) throws InterruptedException {
-        throw new NotImplementedException();
-    }
-
-    @Override
-    public <T> T invokeAny(Collection<? extends Callable<T>> tasks) throws InterruptedException, ExecutionException {
-        throw new NotImplementedException();
-    }
-
-    @Override
-    public <T> T invokeAny(Collection<? extends Callable<T>> tasks, long timeout, TimeUnit unit) throws InterruptedException, ExecutionException, TimeoutException {
-        throw new NotImplementedException();
-    }
-
-    @Override
-    public void execute(Runnable command) {
-        throw new NotImplementedException();
+    private <T> Future<T> submit(Callable<T> task) {
+        callables.add(task);
+        return CompletableFuture.completedFuture(null);
     }
 
     private final static class RunnableAdapter {

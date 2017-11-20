@@ -1,5 +1,6 @@
 package crawler.worker;
 
+import crawler.threadpool.ThreadPool;
 import crawler.utils.CrawlerUtils;
 import logger.GuiLogger;
 import logger.Logger;
@@ -19,9 +20,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.Callable;
-import java.util.concurrent.ExecutorService;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 public class Worker implements Callable<Void> {
 
@@ -30,12 +31,12 @@ public class Worker implements Callable<Void> {
 
     private final URI urlToParse;
     private final Map<URI, List<URI>> graph;
-    private final ExecutorService executorService;
+    private final ThreadPool threadPool;
 
-    public Worker(URI url, Map<URI, List<URI>> graph, ExecutorService executorService) {
+    public Worker(URI url, Map<URI, List<URI>> graph, ThreadPool threadPool) {
         this.urlToParse = url;
         this.graph = graph;
-        this.executorService = executorService;
+        this.threadPool = threadPool;
     }
 
     @Override
@@ -92,9 +93,10 @@ public class Worker implements Callable<Void> {
     }
 
     private void executeRecursiveTasks(List<URI> notVisitedUrls) throws InterruptedException {
-        notVisitedUrls.stream()
-                .map(url -> new Worker(url, graph, executorService))
-                .forEach(executorService::submit);
+        List<Worker> workers = notVisitedUrls.stream()
+                .map(url -> new Worker(url, graph, threadPool))
+                .collect(Collectors.toList());
+        threadPool.invokeAll(workers);
     }
 
     private void saveAsset(URI url, String asset) throws IOException {
