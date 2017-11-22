@@ -4,8 +4,13 @@ import crawler.threadpool.ThreadPool;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 
+import javax.activation.UnsupportedDataTypeException;
+import java.io.BufferedReader;
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.net.URI;
+import java.net.URL;
+import java.net.URLConnection;
 import java.nio.charset.Charset;
 import java.nio.file.Files;
 import java.nio.file.Paths;
@@ -18,8 +23,19 @@ public class SyncWorker extends Worker {
     }
 
     @Override
-    protected Document downloadDocument(URI url) throws IOException {
-        return Jsoup.connect(url.toString()).get();
+    protected Document downloadDocument(URI uri) throws IOException {
+        URL url = new URL(uri.toString());
+        URLConnection conn = url.openConnection();
+        if (!conn.getContentType().startsWith("text/")) throw new UnsupportedDataTypeException();
+
+        StringBuilder sb = new StringBuilder();
+        try (BufferedReader in = new BufferedReader(new InputStreamReader(conn.getInputStream()))) {
+            String inputLine;
+            while ((inputLine = in.readLine()) != null)
+                sb.append(inputLine);
+        }
+
+        return Jsoup.parse(sb.toString());
     }
 
     @Override
