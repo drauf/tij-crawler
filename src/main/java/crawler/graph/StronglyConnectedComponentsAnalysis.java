@@ -44,7 +44,8 @@ public class StronglyConnectedComponentsAnalysis implements Runnable {
     public void run() {
         List<List<Vertex>> components = getStronglyConnectedComponents(graph);
         List<int[][]> distances = calculateDistancesInsideComponents(components);
-        // calculate average distance and diameter of every component (the biggest distance between vertices)
+        String formattedResult = formatResult(distances);
+        logger.result(formattedResult);
     }
 
     // Tarjan's strongly connected components algorithm - O(|V| + |E|)
@@ -152,5 +153,28 @@ public class StronglyConnectedComponentsAnalysis implements Runnable {
         }
 
         return matrix;
+    }
+
+    private String formatResult(List<int[][]> distances) {
+        StringBuilder sb = new StringBuilder(String.format("%n%nNumber of SCCs: %d", distances.size()));
+        for (int[][] dist : distances) {
+            int max = Integer.MIN_VALUE;
+            int cnt = 0;
+            double average = 0;
+
+            for (int x = 0; x < dist.length; x++) {
+                for (int y = 0; y < dist[x].length; y++) {
+                    if (x == y) continue;
+                    if (dist[x][y] > max) max = dist[x][y];
+                    average += dist[x][y];
+                    cnt++;
+                }
+            }
+
+            average /= cnt;
+
+            sb.append(String.format("Average distance in SCC: %s, max distance: %d%n", average, max));
+        }
+        return sb.toString();
     }
 }
