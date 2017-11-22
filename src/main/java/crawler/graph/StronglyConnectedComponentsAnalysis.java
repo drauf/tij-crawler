@@ -156,8 +156,13 @@ public class StronglyConnectedComponentsAnalysis implements Runnable {
     }
 
     private String formatResult(List<int[][]> distances) {
-        StringBuilder sb = new StringBuilder(String.format("%n%nNumber of SCCs: %d", distances.size()));
+        StringBuilder sb = new StringBuilder(String.format("%n%nNumber of SCCs: %d%n", distances.size()));
         for (int[][] dist : distances) {
+            if (dist.length == 1) {
+                sb.append(String.format("SCC contains only one element - average and max distance is 0%n"));
+                continue;
+            }
+
             int max = Integer.MIN_VALUE;
             int cnt = 0;
             double average = 0;
