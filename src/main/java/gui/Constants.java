@@ -12,7 +12,7 @@ final class Constants {
     static final int URL_TEXT_FIELD_Y = MARGIN;
     static final int URL_TEXT_FIELD_WIDTH = 640;
     static final int URL_TEXT_FIELD_HEIGHT = 28;
-    static final String URL_TEXT_FIELD_TEXT = "http://www.pg.gda.pl/~manus/index.html";
+    static final String URL_TEXT_FIELD_TEXT = "https://pg.edu.pl/";
 
     static final int START_BUTTON_X = URL_TEXT_FIELD_WIDTH + URL_TEXT_FIELD_X + MARGIN;
     static final int START_BUTTON_Y = 1 + MARGIN;

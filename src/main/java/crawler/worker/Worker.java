@@ -4,13 +4,13 @@ import crawler.threadpool.ThreadPool;
 import crawler.utils.CrawlerUtils;
 import logger.GuiLogger;
 import logger.Logger;
+import org.jsoup.Jsoup;
+import org.jsoup.nodes.Document;
+import org.jsoup.nodes.Element;
+import org.jsoup.select.Elements;
 
-import java.io.BufferedReader;
 import java.io.IOException;
-import java.io.InputStreamReader;
 import java.net.URI;
-import java.net.URL;
-import java.net.URLConnection;
 import java.nio.charset.Charset;
 import java.nio.file.Files;
 import java.nio.file.Paths;
@@ -18,10 +18,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 import java.util.concurrent.Callable;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 public class Worker implements Callable<Void> {
@@ -42,43 +39,27 @@ public class Worker implements Callable<Void> {
     @Override
     public Void call() throws InterruptedException {
         try {
-            String asset = downloadAsset(urlToParse);
-            parseAsset(urlToParse, asset);
-            saveAsset(urlToParse, asset);
+            Document document = downloadDocument(urlToParse);
+            parseDocument(urlToParse, document);
+            saveDocument(urlToParse, document);
         } catch (IOException ignored) {
         }
         logger.debug("Worker ended peacefully\n");
         return null;
     }
 
-    private String downloadAsset(URI url) throws IOException {
-        StringBuilder content = new StringBuilder();
-
-        URLConnection urlConnection = new URL(url.toString()).openConnection();
-        try (BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(urlConnection.getInputStream(), Charset.forName("UTF-8")))) {
-            String line;
-            while ((line = bufferedReader.readLine()) != null) {
-                content.append(line).append("\n");
-            }
-        } catch (IOException e) {
-            logger.error(String.format("Error when downloading an asset: %s%n", e.getMessage()));
-            throw e;
-        }
-
-        return content.toString();
+    private Document downloadDocument(URI url) throws IOException {
+        return Jsoup.connect(url.toString()).get();
     }
 
-    private void parseAsset(URI baseUrl, String asset) throws InterruptedException {
+    private void parseDocument(URI baseUrl, Document document) throws InterruptedException {
         List<URI> allFoundUrls = new ArrayList<>();
         List<URI> notVisitedUrls = new ArrayList<>();
-        Pattern pattern = Pattern.compile("href=\"(.*?)\"", Pattern.CASE_INSENSITIVE);
-        Matcher urlMatcher = pattern.matcher(asset);
 
-        while (urlMatcher.find()) {
-            String foundUrl = asset.substring(urlMatcher.start(1), urlMatcher.end(1));
-            Optional<URI> validatedUrl = CrawlerUtils.validateUrl(baseUrl, foundUrl);
+        for (Element link : document.select("a")) {
+            String foundUrl = link.attr("href");
 
-            validatedUrl.ifPresent(url -> {
+            CrawlerUtils.validateUrl(baseUrl, foundUrl).ifPresent(url -> {
                 if (!CrawlerUtils.isDocument(url)) return;
 
                 logger.debug(String.format("Found valid url: %s\n", url));
@@ -100,10 +81,10 @@ public class Worker implements Callable<Void> {
         threadPool.invokeAll(workers);
     }
 
-    private void saveAsset(URI url, String asset) throws IOException {
+    private void saveDocument(URI url, Document document) throws IOException {
         try {
-            String targetPath = saveToPath + url.getPath().replace('/', '_');
-            Files.write(Paths.get(targetPath), asset.getBytes(Charset.forName("UTF-8")));
+            String targetPath = saveToPath + url.toString().replace('/', '_');
+            Files.write(Paths.get(targetPath), document.toString().getBytes(Charset.forName("UTF-8")));
         } catch (IOException e) {
             logger.error(String.format("Error when saving an asset: %s%n", e.getMessage()));
             throw e;
