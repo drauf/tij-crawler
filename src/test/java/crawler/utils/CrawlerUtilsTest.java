@@ -15,6 +15,7 @@ class CrawlerUtilsTest {
     private static URI baseUrlWithIndex;
     private static final String URL = "http://example.com/path/";
     private static final String URL_WITH_INDEX = "http://example.com/path/index.html";
+    private static final String URL_WITH_SUBDOMAIN = "http://subdomain.example.com/";
 
     @BeforeAll
     static void initAll() throws URISyntaxException {
@@ -66,6 +67,22 @@ class CrawlerUtilsTest {
         Optional<URI> result = CrawlerUtils.validateUrl(baseUrl, url);
         assertThat(result.isPresent()).isTrue();
         assertThat(result.get().toString()).isEqualTo("http:" + url);
+    }
+
+    @Test
+    void validateUrl_validFullUrlWithSubdomain_ReturnUrl() {
+        String url = "http://subdomain.example.com/";
+        Optional<URI> result = CrawlerUtils.validateUrl(baseUrl, url);
+        assertThat(result.isPresent()).isTrue();
+        assertThat(result.get().toString()).isEqualTo(url);
+    }
+
+    @Test
+    void validateUrl_validFullUrlWithSubdomainAndIndex_ReturnUrl() {
+        String url = "http://subdomain.example.com/index.html";
+        Optional<URI> result = CrawlerUtils.validateUrl(baseUrlWithIndex, url);
+        assertThat(result.isPresent()).isTrue();
+        assertThat(result.get().toString()).isEqualTo(url);
     }
 
     @Test

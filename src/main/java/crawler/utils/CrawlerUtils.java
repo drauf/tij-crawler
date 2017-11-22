@@ -15,9 +15,8 @@ public final class CrawlerUtils {
             URL url = new URL(uri.toString());
             URLConnection u = url.openConnection();
             String type = u.getHeaderField("Content-Type");
-            return "text/html".equals(type);
-        } catch (IOException e) {
-            e.printStackTrace();
+            return type != null && type.contains("text/html");
+        } catch (IOException ignored) {
         }
         return false;
     }
@@ -67,6 +66,6 @@ public final class CrawlerUtils {
             url = url.normalize();
         }
 
-        return (baseUrl.getHost().equals(url.getHost())) ? Optional.of(url) : Optional.empty();
+        return (url.getHost().endsWith(baseUrl.getHost())) ? Optional.of(url) : Optional.empty();
     }
 }
