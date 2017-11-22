@@ -50,6 +50,6 @@ public final class CrawlerUtils {
             url = url.normalize();
         }
 
-        return (url.getHost().endsWith(baseUrl.getHost())) ? Optional.of(url) : Optional.empty();
+        return (url.getHost() != null && url.getHost().endsWith(baseUrl.getHost())) ? Optional.of(url) : Optional.empty();
     }
 }
