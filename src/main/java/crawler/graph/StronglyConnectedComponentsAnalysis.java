@@ -11,6 +11,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Queue;
+import java.util.stream.Collectors;
 
 public class StronglyConnectedComponentsAnalysis implements Runnable {
 
@@ -22,12 +23,15 @@ public class StronglyConnectedComponentsAnalysis implements Runnable {
         private int index;
         private int lowLink;
         private boolean onStack;
+        List<Vertex> edges;
 
-        private URI uri;
-        private List<Vertex> edges;
+        private Vertex() {
+            edges = new ArrayList<>();
+        }
 
-        private Vertex(URI uri) {
-            this.uri = uri;
+        Vertex(int index, int lowLink) {
+            this.index = index;
+            this.lowLink = lowLink;
             edges = new ArrayList<>();
         }
     }
@@ -39,8 +43,8 @@ public class StronglyConnectedComponentsAnalysis implements Runnable {
     @Override
     public void run() {
         List<List<Vertex>> components = getStronglyConnectedComponents(graph);
-        // calculate distances between vertices inside every component
-        // calculate diameter of every component (the biggest distance between vertices)
+        List<int[][]> distances = calculateDistancesInsideComponents(components);
+        // calculate average distance and diameter of every component (the biggest distance between vertices)
     }
 
     // Tarjan's strongly connected components algorithm - O(|V| + |E|)
@@ -51,10 +55,18 @@ public class StronglyConnectedComponentsAnalysis implements Runnable {
         Queue<Vertex> stack = Collections.asLifoQueue(new ArrayDeque<Vertex>());
         Vertex[] vertices = graphToVertexArray(graph);
 
+        // build strongly connected components
         for (Vertex vertex : vertices) {
             if (vertex.index == 0) {
                 strongConnect(vertex, stack,stronglyConnectedComponents);
             }
+        }
+
+        // filter out edges to other components
+        for (Vertex vertex : vertices) {
+            vertex.edges = vertex.edges.stream()
+                    .filter(e -> e.lowLink == vertex.lowLink)
+                    .collect(Collectors.toList());
         }
 
         return stronglyConnectedComponents;
@@ -63,7 +75,7 @@ public class StronglyConnectedComponentsAnalysis implements Runnable {
     static private Vertex[] graphToVertexArray(Map<URI, List<URI>> graph) {
         Map<URI, Vertex> uriVertexMap = new HashMap<>();
         // create map containing all vertices but no edges
-        graph.keySet().forEach(key -> uriVertexMap.put(key, new Vertex(key)));
+        graph.keySet().forEach(key -> uriVertexMap.put(key, new Vertex()));
         // add edges to the map
         graph.forEach((u, listOfW) -> listOfW.forEach(w ->
                 uriVertexMap.get(u).edges.add(uriVertexMap.get(w))));
@@ -99,5 +111,46 @@ public class StronglyConnectedComponentsAnalysis implements Runnable {
             } while (other != currentVertex);
             stronglyConnectedComponents.add(scc);
         }
+    }
+
+    // Floyd-Warshall algorithm - O(|V|^3)
+    // https://en.wikipedia.org/wiki/Floyd%E2%80%93Warshall_algorithm
+    static List<int[][]> calculateDistancesInsideComponents(List<List<Vertex>> components) {
+        List<int[][]> results = new ArrayList<>();
+        for (List<Vertex> vertices : components) {
+            final int verticesNo = vertices.size();
+            final int distances[][] = createMatrix(verticesNo);
+
+            for (Vertex vertex : vertices) {
+                int currentIndex = vertex.index - vertex.lowLink;
+                vertex.edges.forEach(e -> distances[currentIndex][e.index - e.lowLink] = 1);
+            }
+
+            for (int k = 0; k < verticesNo; k++) {
+                for (int i = 0; i < verticesNo; i++) {
+                    for (int j = 0; j < verticesNo; j++) {
+                        if (distances[i][j] > distances[i][k] + distances[k][j]) {
+                            distances[i][j] = distances[i][k] + distances[k][j];
+                        }
+                    }
+                }
+            }
+
+            results.add(distances);
+        }
+        return results;
+    }
+
+    private static int[][] createMatrix(int size) {
+        final int matrix[][] = new int[size][size];
+
+        for (int i = 0; i < size; i++) {
+            for (int j = 0; j < size; j++) {
+                matrix[i][j] = 2000000;
+            }
+            matrix[i][i] = 0;
+        }
+
+        return matrix;
     }
 }
