@@ -1,6 +1,7 @@
 package crawler;
 
 import crawler.graph.BasicAnalysis;
+import crawler.graph.StronglyConnectedComponentsAnalysis;
 import crawler.threadpool.ThreadPool;
 import crawler.worker.Worker;
 import logger.GuiLogger;
@@ -56,6 +57,7 @@ public final class Crawler implements Runnable {
         try {
             threadPool = threadPoolSupplier.get();
             threadPool.submit(new BasicAnalysis(graph));
+            threadPool.submit(new StronglyConnectedComponentsAnalysis(graph));
         } finally {
             if (threadPool != null) threadPool.shutdown();
         }
