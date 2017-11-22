@@ -26,7 +26,7 @@ final class StartButtonActionListener implements ActionListener {
         logger.result(String.format("Starting crawler with %d threads, pool %s, base url: %s%n", mainWindow.getNumberOfThreads(), mainWindow.getThreadPool(), mainWindow.getUrl()));
         try {
             Supplier<ThreadPool> threadPoolSupplier = getThreadPoolSupplier();
-            Crawler crawler = new Crawler(mainWindow.getUrl(), threadPoolSupplier);
+            Crawler crawler = new Crawler(mainWindow.getUrl(), mainWindow.getMode(), threadPoolSupplier);
             (new Thread(crawler)).start();
         } catch (URISyntaxException ex) {
             logger.error(String.format("Invalid initial URL: %s", ex.getMessage()));

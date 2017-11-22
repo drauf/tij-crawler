@@ -4,16 +4,11 @@ import crawler.threadpool.ThreadPool;
 import crawler.utils.CrawlerUtils;
 import logger.GuiLogger;
 import logger.Logger;
-import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
-import org.jsoup.select.Elements;
 
 import java.io.IOException;
 import java.net.URI;
-import java.nio.charset.Charset;
-import java.nio.file.Files;
-import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -21,16 +16,17 @@ import java.util.Map;
 import java.util.concurrent.Callable;
 import java.util.stream.Collectors;
 
-public class Worker implements Callable<Void> {
+public abstract class Worker implements Callable<Void> {
 
-    private static final String saveToPath = "/Projects/tij/";
-    private static final Logger logger = Logger.getLogger(GuiLogger.class);
+    private static final int requestsLimit = 3000;
+    static final String saveToPath = "/Projects/tij/";
+    static final Logger logger = Logger.getLogger(GuiLogger.class);
 
-    private final URI urlToParse;
-    private final Map<URI, List<URI>> graph;
-    private final ThreadPool threadPool;
+    final URI urlToParse;
+    final Map<URI, List<URI>> graph;
+    final ThreadPool threadPool;
 
-    public Worker(URI url, Map<URI, List<URI>> graph, ThreadPool threadPool) {
+    Worker(URI url, Map<URI, List<URI>> graph, ThreadPool threadPool) {
         this.urlToParse = url;
         this.graph = graph;
         this.threadPool = threadPool;
@@ -38,19 +34,26 @@ public class Worker implements Callable<Void> {
 
     @Override
     public Void call() throws InterruptedException {
+        if (graph.size() > requestsLimit) {
+            graph.putIfAbsent(urlToParse, Collections.emptyList());
+            return null;
+        }
+
         try {
             Document document = downloadDocument(urlToParse);
-            parseDocument(urlToParse, document);
             saveDocument(urlToParse, document);
+            parseDocument(urlToParse, document);
         } catch (IOException ignored) {
         }
         logger.debug("Worker ended peacefully\n");
         return null;
     }
 
-    private Document downloadDocument(URI url) throws IOException {
-        return Jsoup.connect(url.toString()).get();
-    }
+    protected abstract Document downloadDocument(URI url) throws IOException;
+
+    protected abstract void saveDocument(URI url, Document document) throws IOException;
+
+    protected abstract Worker createWorker(URI uri);
 
     private void parseDocument(URI baseUrl, Document document) throws InterruptedException {
         List<URI> allFoundUrls = new ArrayList<>();
@@ -60,9 +63,6 @@ public class Worker implements Callable<Void> {
             String foundUrl = link.attr("href");
 
             CrawlerUtils.validateUrl(baseUrl, foundUrl).ifPresent(url -> {
-                if (!CrawlerUtils.isDocument(url)) return;
-
-                logger.debug(String.format("Found valid url: %s\n", url));
                 allFoundUrls.add(url);
                 if (graph.putIfAbsent(url, Collections.emptyList()) == null) {
                     notVisitedUrls.add(url);
@@ -76,18 +76,8 @@ public class Worker implements Callable<Void> {
 
     private void executeRecursiveTasks(List<URI> notVisitedUrls) throws InterruptedException {
         List<Worker> workers = notVisitedUrls.stream()
-                .map(url -> new Worker(url, graph, threadPool))
+                .map(this::createWorker)
                 .collect(Collectors.toList());
         threadPool.invokeAll(workers);
-    }
-
-    private void saveDocument(URI url, Document document) throws IOException {
-        try {
-            String targetPath = saveToPath + url.toString().replace('/', '_');
-            Files.write(Paths.get(targetPath), document.toString().getBytes(Charset.forName("UTF-8")));
-        } catch (IOException e) {
-            logger.error(String.format("Error when saving an asset: %s%n", e.getMessage()));
-            throw e;
-        }
     }
 }
