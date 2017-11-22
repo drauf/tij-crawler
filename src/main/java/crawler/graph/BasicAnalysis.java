@@ -22,24 +22,24 @@ public final class BasicAnalysis implements Runnable {
     @Override
     public void run() {
         String sb = "\n\n"
-                + analyzeVerticesNumber()
-                + analyzeEdgesNumber()
-                + analyzeOutDegrees()
-                + analyzeInDegrees();
+                + analyzeVerticesNumber(graph)
+                + analyzeEdgesNumber(graph)
+                + analyzeOutDegrees(graph)
+                + analyzeInDegrees(graph);
         logger.result(sb);
     }
 
-    String analyzeVerticesNumber() {
+    static String analyzeVerticesNumber(Map<URI, List<URI>> graph) {
         int vertices = graph.size();
         return String.format("Number of vertices: %d%n%n", vertices);
     }
 
-    String analyzeEdgesNumber() {
+    static String analyzeEdgesNumber(Map<URI, List<URI>> graph) {
         int edges = graph.values().stream().mapToInt(List::size).sum();
         return String.format("Number of edges: %d%n%n", edges);
     }
 
-    String analyzeOutDegrees() {
+    static String analyzeOutDegrees(Map<URI, List<URI>> graph) {
         StringBuilder sb = new StringBuilder();
         graph.values().stream()
                 .mapToInt(List::size).boxed()
@@ -48,9 +48,9 @@ public final class BasicAnalysis implements Runnable {
         return sb.toString();
     }
 
-    String analyzeInDegrees() {
+    static String analyzeInDegrees(Map<URI, List<URI>> graph) {
         StringBuilder sb = new StringBuilder();
-        Map<URI, Integer> degrees = calculateInDegrees();
+        Map<URI, Integer> degrees = calculateInDegrees(graph);
 
         // group entries by in-degree and prepare output
         degrees.entrySet().stream()
@@ -60,7 +60,7 @@ public final class BasicAnalysis implements Runnable {
         return sb.toString();
     }
 
-    private Map<URI, Integer> calculateInDegrees() {
+    static private Map<URI, Integer> calculateInDegrees(Map<URI, List<URI>> graph) {
         // initialize map with every URI with in-degree 0
         Map<URI, Integer> degrees = new HashMap<>();
         graph.keySet().forEach(uri -> degrees.put(uri, 0));
