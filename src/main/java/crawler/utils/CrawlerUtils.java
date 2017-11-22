@@ -1,10 +1,26 @@
 package crawler.utils;
 
+import java.io.IOException;
+import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.net.URL;
+import java.net.URLConnection;
 import java.util.Optional;
 
 public final class CrawlerUtils {
+
+    public static boolean isDocument(URI uri) {
+        try {
+            URL url = new URL(uri.toString());
+            URLConnection u = url.openConnection();
+            String type = u.getHeaderField("Content-Type");
+            return "text/html".equals(type);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return false;
+    }
 
     public static Optional<URI> validateUrl(URI baseUrl, String urlToValidate) {
         if (isInvalid(urlToValidate)) return Optional.empty();

@@ -79,9 +79,10 @@ public class Worker implements Callable<Void> {
             Optional<URI> validatedUrl = CrawlerUtils.validateUrl(baseUrl, foundUrl);
 
             validatedUrl.ifPresent(url -> {
+                if (!CrawlerUtils.isDocument(url)) return;
+
                 logger.debug(String.format("Found valid url: %s\n", url));
                 allFoundUrls.add(url);
-
                 if (graph.putIfAbsent(url, Collections.emptyList()) == null) {
                     notVisitedUrls.add(url);
                 }
