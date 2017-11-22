@@ -27,20 +27,28 @@ public class CustomThreadPool implements ThreadPool {
         private final BlockingQueue<Callable<?>> callables;
         private final long timeout;
         private final TimeUnit unit;
+        private final AtomicBoolean isWorking;
+        private final AtomicBoolean isShutdown;
 
-        SimpleThread(BlockingQueue<Callable<?>> callables, long timeout, TimeUnit unit) {
+        SimpleThread(BlockingQueue<Callable<?>> callables, long timeout, TimeUnit unit, AtomicBoolean isShutdown) {
             super();
             this.callables = callables;
             this.timeout = timeout;
             this.unit = unit;
+            this.isWorking = new AtomicBoolean(true);
+            this.isShutdown = isShutdown;
         }
 
         @Override
         public void run() {
             try {
-                Callable<?> callable;
-                while ((callable = callables.poll(timeout, unit)) != null) {
-                    call(callable);
+                while (!isShutdown.get()) {
+                    Callable<?> callable;
+                    while ((callable = callables.poll(timeout, unit)) != null) {
+                        isWorking.set(true);
+                        call(callable);
+                    }
+                    isWorking.set(false);
                 }
             } catch (InterruptedException e) {
                 e.printStackTrace();
@@ -58,7 +66,7 @@ public class CustomThreadPool implements ThreadPool {
 
     public CustomThreadPool(int nThreads) {
         callables = new LinkedBlockingQueue<>();
-        threads = Stream.generate(() -> new SimpleThread(callables, 250, TimeUnit.MILLISECONDS))
+        threads = Stream.generate(() -> new SimpleThread(callables, 250, TimeUnit.MILLISECONDS, isShutdown))
                 .limit(nThreads).collect(Collectors.toList());
         threads.forEach(Thread::start);
     }
@@ -84,13 +92,14 @@ public class CustomThreadPool implements ThreadPool {
 
         while (true) {
             boolean flag = true;
-            for (Thread thread : threads) {
-                if (thread.isAlive()) {
+            for (SimpleThread thread : threads) {
+                if (thread.isWorking.get()) {
                     flag = false;
                     break;
                 }
             }
             if (flag) {
+                isShutdown.set(true);
                 return;
             }
             try {
