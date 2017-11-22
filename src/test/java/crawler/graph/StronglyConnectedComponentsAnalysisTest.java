@@ -84,10 +84,10 @@ class StronglyConnectedComponentsAnalysisTest {
     private List<List<Vertex>> getSCC() throws URISyntaxException {
         Vertex v1 = new Vertex(1, 1);
         Vertex v2 = new Vertex(2, 1);
-        Vertex v3 = new Vertex(3, 1);
+        Vertex v8 = new Vertex(8, 1);
         v1.edges.add(v2);
-        v2.edges.add(v3);
-        v3.edges.add(v1);
+        v2.edges.add(v8);
+        v8.edges.add(v1);
 
         Vertex v4 = new Vertex(4, 4);
         Vertex v5 = new Vertex(5, 4);
@@ -96,15 +96,16 @@ class StronglyConnectedComponentsAnalysisTest {
 
         Vertex v6 = new Vertex(6, 6);
         Vertex v7 = new Vertex(7, 6);
-        Vertex v8 = new Vertex(8, 8);
         v6.edges.add(v7);
         v7.edges.add(v6);
 
+        Vertex v3 = new Vertex(3, 3);
+
         List<List<Vertex>> scc = new ArrayList<>();
-        scc.add(Arrays.asList(v1, v2, v3));
+        scc.add(Arrays.asList(v1, v2, v8));
         scc.add(Arrays.asList(v4, v5));
         scc.add(Arrays.asList(v6, v7));
-        scc.add(Collections.singletonList(v8));
+        scc.add(Collections.singletonList(v3));
         return scc;
     }
 }

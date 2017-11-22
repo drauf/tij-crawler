@@ -59,7 +59,7 @@ public class StronglyConnectedComponentsAnalysis implements Runnable {
         // build strongly connected components
         for (Vertex vertex : vertices) {
             if (vertex.index == 0) {
-                strongConnect(vertex, stack,stronglyConnectedComponents);
+                strongConnect(vertex, stack, stronglyConnectedComponents);
             }
         }
 
@@ -122,9 +122,12 @@ public class StronglyConnectedComponentsAnalysis implements Runnable {
             final int verticesNo = vertices.size();
             final int distances[][] = createMatrix(verticesNo);
 
+            int ind = 0;
             for (Vertex vertex : vertices) {
-                int currentIndex = vertex.index - vertex.lowLink;
-                vertex.edges.forEach(e -> distances[currentIndex][e.index - e.lowLink] = 1);
+                vertex.index = ind++;
+            }
+            for (Vertex vertex : vertices) {
+                vertex.edges.forEach(e -> distances[vertex.index][e.index] = 1);
             }
 
             for (int k = 0; k < verticesNo; k++) {
@@ -159,7 +162,6 @@ public class StronglyConnectedComponentsAnalysis implements Runnable {
         StringBuilder sb = new StringBuilder(String.format("%n%nNumber of SCCs: %d%n", distances.size()));
         for (int[][] dist : distances) {
             if (dist.length == 1) {
-                sb.append(String.format("SCC contains only one element - average and max distance is 0%n"));
                 continue;
             }
 
