@@ -1,6 +1,29 @@
 # tij-crawler
 
-## Original requirements (in polish)
+## <img src="gb.svg" alt="Flag of Great Britain" height="24px"> Original requirements
+The task is to write an online robot that browses resources within a given (reasonably large, at least 3000 subpages) of a domain belonging to a foreign university and saves copies of documents on the disk and analyzes the graph of connections between them (vertex = page or resource (file), arch = link from one page (resource) to another page (resource)).
+  
+To obtain max.20 points, you must complete all of the following tasks:
+- GUI interface,
+- implementation of network communication and I/O operations in a synchronous (blocking) model,
+- using a built-in pool of threads to carry out the multithreaded downloading (and saving) of documents,
+- adherence to the Robots Exclusion Protocol restrictions,
+- analysis of the graph of connections between documents: number of vertices and arcs, distribution of incoming and outgoing steps.
+  
+To obtain the next 10 points, you MUST accomplish all of the following elements of the task:
+- implementation of own thread pool for execution of multithreaded downloading (and saving) documents,
+- graph analysis of connections between documents: number of consistency components, average length of the shortest path between vertices (in each SCC), diameter of each graph consistency component.
+  
+To obtain the next 10 points, you MUST accomplish all of the following elements of the task:
+- implementation of network communication and I/O operations in an asynchronous (non-blocking) model.
+  
+As part of this task, it is MANDATORY to create a report in which the following elements should be included:
+- detailed description of the concept at the LOGICAL level (architecture + workflow) of implemented solutions (note: do not describe classes or class diagrams!),
+- documenting the implementation of individual elements of the task,
+- test results, including measured times of individual stages of application operations for different number of threads (1,2,4,8,16,32) for implemented communication models (synchronous and asynchronous).
+
+
+## <img src="pl.svg" alt="Flag of Poland" height="24px"> Original requirements
 Zadanie polega na napisaniu robota internetowego, który przegląda zasoby w obrębie podanej (rozsądnie dużej, min. 3000
 podstron) domeny należącej do zagranicznej uczelni i zapisuje na dysku kopie dokumentów oraz analizuje graf połączeń między
 nimi (wierzchołek=strona lub zasób (plik), łuk=link z jednej strony (zasobu) do innej strony (zasobu)).
