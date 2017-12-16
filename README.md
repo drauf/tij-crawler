@@ -25,3 +25,13 @@ klas ani diagramów klas!),
 - udokumentowanie realizacji poszczególnych elementów zadania,
 - wyniki testów, w tym zmierzone czasy poszczególnych etapów działania aplikacji dla różnej liczby wątków (1,2,4,8,16,32) dla
 zaimplementowanych modeli komunikacji (synchroniczne oraz asynchroniczne).
+
+## Areas for improvement
+- Using GUI described in Java was a terrible idea - defining it in an XML document would be much cleaner  
+- Custom logger was a bad idea (poor API)  
+- Custom thread pool is a joke and could be improved (especially awaiting the execution and mixing Futures/Callables/Tasks)  
+- Default thread pool is broken (but was way slower than the custom one anyway)  
+- Graph analysis based on streams is a mental masturbation and should be changed to something maintanable  
+- Robots exclusion protocol code is never called and is only there to get all the points for the assignment
+- After the requirements changed, the code was heavily modified but not refactored (and it should be)  
+- IIRC some exceptions were silenced  
