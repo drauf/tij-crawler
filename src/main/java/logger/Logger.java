@@ -6,7 +6,7 @@ public abstract class Logger {
         DEBUG, INFO, WARN, ERROR, RESULT
     }
 
-    private static final LOGGING_LEVEL loggingLevel = LOGGING_LEVEL.INFO;
+    private static final LOGGING_LEVEL loggingLevel = LOGGING_LEVEL.RESULT;
 
     public static Logger getLogger(Class c) {
         return GuiLogger.getInstance();

@@ -55,7 +55,7 @@ public class CustomThreadPool implements ThreadPool {
             }
         }
 
-        private void call(Callable<?> callable) {
+        private static void call(Callable<?> callable) {
             try {
                 callable.call();
             } catch (Exception e) {

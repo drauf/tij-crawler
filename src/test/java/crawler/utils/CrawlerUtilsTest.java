@@ -15,7 +15,6 @@ class CrawlerUtilsTest {
     private static URI baseUrlWithIndex;
     private static final String URL = "http://example.com/path/";
     private static final String URL_WITH_INDEX = "http://example.com/path/index.html";
-    private static final String URL_WITH_SUBDOMAIN = "http://subdomain.example.com/";
 
     @BeforeAll
     static void initAll() throws URISyntaxException {

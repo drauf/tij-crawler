@@ -40,22 +40,22 @@ public final class BasicAnalysis implements Runnable {
     }
 
     static String analyzeOutDegrees(Map<URI, List<URI>> graph) {
-        StringBuilder sb = new StringBuilder();
+        StringBuilder sb = new StringBuilder("\n\n\nOUT\n\n");
         graph.values().stream()
                 .mapToInt(List::size).boxed()
                 .collect(Collectors.groupingBy(Integer::intValue, Collectors.counting()))
-                .forEach((outDegree, count) -> sb.append(String.format("Vertices with out degree %d: %d%n", outDegree, count)));
+                .forEach((outDegree, count) -> sb.append(String.format("%d %d%n", outDegree, count)));
         return sb.toString();
     }
 
     static String analyzeInDegrees(Map<URI, List<URI>> graph) {
-        StringBuilder sb = new StringBuilder();
+        StringBuilder sb = new StringBuilder("\n\n\nIN\n\n");
         Map<URI, Integer> degrees = calculateInDegrees(graph);
 
         // group entries by in-degree and prepare output
         degrees.entrySet().stream()
                 .collect(Collectors.groupingBy(Map.Entry::getValue, Collectors.counting()))
-                .forEach((inDegree, count) -> sb.append(String.format("Vertices with in degree %d: %d%n", inDegree, count)));
+                .forEach((inDegree, count) -> sb.append(String.format("%d %d%n", inDegree, count)));
 
         return sb.toString();
     }

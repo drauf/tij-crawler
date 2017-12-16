@@ -14,10 +14,12 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.Callable;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 
 public abstract class Worker implements Callable<Void> {
 
+    private static AtomicInteger documentsParsed = new AtomicInteger(0);
     private static final int requestsLimit = 3000;
     static final String saveToPath = "/Projects/tij/";
     static final Logger logger = Logger.getLogger(GuiLogger.class);
@@ -34,7 +36,7 @@ public abstract class Worker implements Callable<Void> {
 
     @Override
     public Void call() throws InterruptedException {
-        if (graph.size() > requestsLimit) {
+        if (documentsParsed.get() > requestsLimit) {
             graph.putIfAbsent(urlToParse, Collections.emptyList());
             return null;
         }
@@ -43,6 +45,7 @@ public abstract class Worker implements Callable<Void> {
             Document document = downloadDocument(urlToParse);
             saveDocument(urlToParse, document);
             parseDocument(urlToParse, document);
+            documentsParsed.incrementAndGet();
         } catch (IOException ignored) {
         }
         logger.debug("Worker ended peacefully\n");

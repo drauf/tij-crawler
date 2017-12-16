@@ -26,7 +26,8 @@ public class SyncWorker extends Worker {
     protected Document downloadDocument(URI uri) throws IOException {
         URL url = new URL(uri.toString());
         URLConnection conn = url.openConnection();
-        if (!conn.getContentType().startsWith("text/")) throw new UnsupportedDataTypeException();
+        String contentType = conn.getContentType();
+        if (contentType == null || !contentType.startsWith("text/")) throw new UnsupportedDataTypeException();
 
         StringBuilder sb = new StringBuilder();
         try (BufferedReader in = new BufferedReader(new InputStreamReader(conn.getInputStream()))) {
