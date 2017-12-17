@@ -1,7 +1,7 @@
 # tij-crawler
 
 ## <img src="gb.svg" alt="Flag of Great Britain" height="24px"> Original requirements
-The task is to write an online robot that browses resources within a given (reasonably large, at least 3000 subpages) of a domain belonging to a foreign university and saves copies of documents on the disk and analyzes the graph of connections between them (vertex = page or resource (file), arch = link from one page (resource) to another page (resource)).
+The task is to write an online robot that browses resources within a given domain (reasonably large, at least 3000 subpages) belonging to a foreign university and saves copies of documents on the disk and analyzes the graph of connections between them (vertex = page or resource (file), arch = link from one page (resource) to another page (resource)).
   
 To obtain max.20 points, you must complete all of the following tasks:
 - GUI interface,
